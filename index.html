@@ -1,0 +1,1187 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0e0b08">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>SIMPOE — Sistema Inteligente de Mantenimiento Predictivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-brand-icon">⚙</div>
+      <div>
+        <div class="login-brand-name">SIMPOE</div>
+        <div class="login-brand-sub">Mantenimiento y Productividad Industrial</div>
+      </div>
+    </div>
+    <div class="login-heading">Acceso al Sistema</div>
+    <div class="login-sub">Ingresa tus credenciales</div>
+
+    <div class="login-field">
+      <label class="login-label">Correo electrónico</label>
+      <div class="login-input-wrap">
+        <span class="login-input-icon">📧</span>
+        <input class="login-input" type="email" id="li-email" placeholder="correo@empresa.com" autocomplete="off">
+      </div>
+    </div>
+    <div class="login-field">
+      <label class="login-label">Contraseña</label>
+      <div class="login-input-wrap">
+        <span class="login-input-icon">🔑</span>
+        <input class="login-input" type="password" id="li-pass" placeholder="••••••••" autocomplete="off">
+      </div>
+    </div>
+
+    <button class="login-btn" id="login-btn">Ingresar</button>
+    <div class="login-error" id="login-error">❌ Correo o contraseña incorrectos. Intenta de nuevo.</div>
+  </div>
+</div>
+
+<!-- ══ TOPBAR ══ -->
+<div class="topbar">
+  <div class="brand brand-logo">
+    <div class="brand-icon">⚙</div>
+    <div>
+      <div>SIMPOE</div>
+      <div class="brand-sub">Sistema Inteligente de Mantenimiento</div>
+    </div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div class="tb-status"><div class="pulse-dot"></div>Sistema activo</div>
+  <div id="modulo-activo" style="font-size:.74rem;font-weight:700;color:var(--text2);background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:3px 12px;">🎛 Centro de Control Operacional</div>
+  <div id="tb-empresa" style="font-size:.74rem;font-weight:700;color:var(--blue2);background:rgba(232,120,32,.12);border:1px solid rgba(232,120,32,.3);border-radius:20px;padding:3px 11px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+  <div id="tb-saved" style="font-size:.72rem;color:var(--green2);display:none;align-items:center;gap:4px;">💾 Guardado</div>
+  <div class="tb-clock" id="tb-clock">--:--:--</div>
+  <div class="tb-user">
+    <div class="tb-avatar" id="tb-avatar">?</div>
+    <div style="display:flex;flex-direction:column;gap:1px">
+      <span class="tb-name" id="tb-name">—</span>
+      <span id="tb-role-badge" style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)"></span>
+    </div>
+    <button class="tb-logout" onclick="doLogout()" title="Cerrar sesión">⏻</button>
+  </div>
+  <button class="btn btn-primary btn-sm" onclick="abrirModalEquipo()">+ Equipo</button>
+</div>
+
+<div class="layout">
+<!-- ══ SIDEBAR ══ -->
+<nav class="sidebar">
+  <div class="sidebar-inner">
+  <div class="nav-sec">Principal</div>
+  <div class="nav-item active" id="nav-dashboard" onclick="goView('dashboard',this)">
+    <span class="nav-icon">📊</span><span>Dashboard</span>
+  </div>
+  <div class="nav-item" id="nav-equipos" onclick="goView('equipos',this)">
+    <span class="nav-icon">⚙️</span><span>Equipos</span>
+  </div>
+  <div class="nav-sec">Análisis</div>
+  <div class="nav-item" id="nav-calculo" onclick="goView('calculo',this)">
+    <span class="nav-icon">🧮</span><span>Cálculo</span>
+  </div>
+  <div class="nav-item" id="nav-ia" onclick="goView('ia',this)">
+    <span class="nav-icon">🧠</span><span>IA / Análisis</span>
+    <span class="nav-badge nb-yellow" id="badge-ia">0</span>
+  </div>
+  <div class="nav-sec">Gestión</div>
+  <div class="nav-item" id="nav-alertas" onclick="goView('alertas',this)">
+    <span class="nav-icon">🔔</span><span>Alertas</span>
+    <span class="nav-badge nb-red" id="badge-alertas">0</span>
+  </div>
+  <div class="nav-item" id="nav-historial" onclick="goView('historial',this)">
+    <span class="nav-icon">📋</span><span>Historial</span>
+    <span class="nav-badge nb-green" id="badge-historial">0</span>
+  </div>
+  <div class="nav-item" id="nav-mantenimiento" onclick="goView('mantenimiento',this)">
+    <span class="nav-icon">🔧</span><span>Mantenimiento</span>
+  </div>
+  <div class="nav-item" id="nav-reporte" onclick="goView('reporte',this)">
+    <span class="nav-icon">📄</span><span>Reporte</span>
+    <span class="nav-badge nb-purple">PDF</span>
+  </div>
+  <div class="nav-item" id="nav-fallas" onclick="goView('fallas',this)">
+    <span class="nav-icon">⚠️</span><span>Fallas</span>
+    <span class="nav-badge nb-red" id="badge-fallas">0</span>
+  </div>
+  <div class="nav-item" id="nav-activos" onclick="goViewSeguro('activos',this)" style="display:none">
+    <span class="nav-icon">🗂️</span><span>Activos</span>
+    <span class="nav-badge nb-purple" id="badge-activos">0</span>
+  </div>
+  <div class="nav-sec" id="nav-sec-admin" style="display:none">Admin</div>
+  <div class="nav-item" id="nav-usuarios" onclick="goViewSeguro('usuarios',this)" style="display:none">
+    <span class="nav-icon">👥</span><span>Usuarios</span>
+    <span class="nav-badge nb-purple" id="badge-usuarios">0</span>
+  </div>
+  <div class="nav-item" id="nav-empresas" onclick="goViewSeguro('empresas',this)" style="display:none">
+    <span class="nav-icon">🏢</span><span>Empresas</span>
+    <span class="nav-badge nb-purple" id="badge-empresas">0</span>
+  </div>
+  <div class="nav-footer">
+    <button onclick="limpiarDatos()" class="btn-reset-demo">🗑 Reset demo</button>
+  </div>
+  </div><!-- /sidebar-inner -->
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+
+<!-- ══════ DASHBOARD ══════ -->
+<div class="view active" id="view-dashboard">
+  <div class="ph">
+    <div class="ph-left">
+      <h1 id="dash-title">🎛 Centro de Control Operacional</h1>
+      <p>Estado en tiempo real de los equipos</p>
+    </div>
+    <div class="ph-actions">
+      <button class="btn btn-ghost btn-sm" onclick="renderDashboard()">↻ Actualizar</button>
+      <button class="btn btn-primary btn-sm" onclick="abrirModalEquipo()">+ Equipo</button>
+    </div>
+  </div>
+
+  <!-- 4 INDICADORES PRINCIPALES -->
+  <div class="stat-grid" id="dash-stats" style="margin-bottom:16px"></div>
+
+  <!-- MENSAJE PRINCIPAL DEL SISTEMA — solo 1 mensaje, el más importante -->
+  <div id="dash-mensaje-principal" style="margin-bottom:20px"></div>
+
+  <!-- BOTÓN EXPANDIR DETALLES -->
+  <div style="text-align:center;margin-bottom:16px">
+    <button onclick="toggleDashDetalle(this)"
+      style="background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:9px 24px;color:var(--text2);font-family:var(--font);font-size:.82rem;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px"
+      onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue2)'"
+      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">
+      <span>📋</span><span id="dash-detalle-label">Ver alertas y mantenimientos</span><span id="dash-arrow">▾</span>
+    </button>
+  </div>
+
+  <!-- DETALLE EXPANDIBLE — oculto por defecto -->
+  <div id="dash-detalle" style="display:none">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">🔔 Alertas Activas</span>
+          <span id="dash-alert-count" class="badge b-crit" style="display:none"></span>
+        </div>
+        <div class="card-body" id="dash-alerts"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-title">📅 Próximos Mantenimientos</span></div>
+        <div class="card-body" id="dash-proximos"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ EQUIPOS ══════ -->
+<div class="view" id="view-equipos">
+  <div class="ph">
+    <div class="ph-left"><h1>Gestión de Equipos</h1><p>Busca un equipo para ver su estado de salud</p></div>
+    <div class="ph-actions">
+      <button class="btn-export" onclick="exportarEquipos()">📥 Exportar CSV</button>
+      <button class="btn btn-primary btn-sm" onclick="abrirModalEquipo()">+ Nuevo Equipo</button>
+    </div>
+  </div>
+  <!-- Buscador grande centrado -->
+  <div style="max-width:520px;margin:0 auto 24px;">
+    <div style="position:relative;">
+      <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:1.1rem;pointer-events:none;">🔍</span>
+      <input type="text" id="eq-search" placeholder="Escribe el nombre del equipo..."
+        style="width:100%;background:var(--s2);border:1.5px solid var(--border2);border-radius:var(--r2);padding:14px 16px 14px 46px;color:var(--text);font-family:var(--font);font-size:1rem;outline:none;transition:border-color .15s,box-shadow .15s;"
+        oninput="renderEquipos()"
+        onfocus="this.style.borderColor='var(--blue)';this.style.boxShadow='0 0 0 3px rgba(232,120,32,.15)'"
+        onblur="this.style.borderColor='var(--border2)';this.style.boxShadow='none'">
+    </div>
+    <div style="text-align:center;font-size:.78rem;color:var(--text3);margin-top:8px">
+      O filtra por estado:
+      <span class="tab" id="eq-tab-all" style="display:inline;padding:4px 10px;cursor:pointer;border-bottom:none;margin:0 2px;" onclick="setEqTab('all',this)">Todos</span>
+      <span class="tab" id="eq-tab-ok" style="display:inline;padding:4px 10px;cursor:pointer;border-bottom:none;margin:0 2px;" onclick="setEqTab('ok',this)">✅ OK</span>
+      <span class="tab" id="eq-tab-warn" style="display:inline;padding:4px 10px;cursor:pointer;border-bottom:none;margin:0 2px;" onclick="setEqTab('warn',this)">⚠️ Atención</span>
+      <span class="tab" id="eq-tab-crit" style="display:inline;padding:4px 10px;cursor:pointer;border-bottom:none;margin:0 2px;" onclick="setEqTab('crit',this)">🔴 Críticos</span>
+    </div>
+  </div>
+  <div class="eq-cards" id="eq-cards">
+    <div class="empty" style="grid-column:1/-1">
+      <div class="empty-icon">🔍</div>
+      <p>Escribe el nombre del equipo que deseas buscar</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ CÁLCULO ══════ -->
+<div class="view" id="view-calculo">
+  <div class="ph">
+    <div class="ph-left">
+      <h1>🧮 Cálculo de Vida Útil</h1>
+      <p>Análisis técnico del estado y ciclo de mantenimiento del equipo</p>
+    </div>
+    <div class="ph-actions">
+      <button class="btn btn-ghost btn-sm" onclick="calcSeleccionar()">↻ Recalcular</button>
+    </div>
+  </div>
+
+  <!-- Selector prominente -->
+  <div style="background:linear-gradient(135deg,rgba(232,120,32,.1),rgba(180,80,8,.06));border:1.5px solid rgba(232,120,32,.3);border-radius:var(--r2);padding:20px 24px;margin-bottom:22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+    <div style="flex-shrink:0;font-size:2.2rem">⚙️</div>
+    <div style="flex:1">
+      <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--blue2);margin-bottom:7px">Equipo a calcular</div>
+      <select id="calc-equipo-sel" onchange="calcSeleccionar()"
+        style="width:100%;background:var(--s3);border:1.5px solid rgba(232,120,32,.3);border-radius:var(--r);padding:11px 15px;color:var(--text);font-family:var(--font);font-size:.92rem;outline:none;cursor:pointer;transition:border-color .2s"
+        onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='rgba(232,120,32,.3)'">
+        <option value="">— Selecciona un equipo para calcular —</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Estado vacío -->
+  <div id="calc-empty" style="text-align:center;padding:56px 20px;color:var(--text3)">
+    <div style="font-size:3.5rem;margin-bottom:14px;opacity:.3">🧮</div>
+    <div style="font-size:1rem;font-weight:700;color:var(--text2);margin-bottom:8px">Selecciona un equipo arriba</div>
+    <p style="font-size:.83rem;max-width:360px;margin:0 auto;line-height:1.7;color:var(--text3)">
+      El sistema calculará la <strong style="color:var(--blue2)">vida útil restante</strong>,
+      <strong style="color:var(--blue2)">índice de salud</strong> y
+      <strong style="color:var(--blue2)">días para el próximo mantenimiento</strong>
+      basado en las horas acumuladas y el factor de uso.
+    </p>
+  </div>
+
+  <!-- Resultado (oculto hasta selección) -->
+  <div id="calc-resultado" style="display:none">
+
+    <!-- Card principal — resultados clave -->
+    <div class="card" style="margin-bottom:16px" id="calc-card-detalle"></div>
+
+    <!-- Fórmulas explicativas -->
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 20px;margin-bottom:16px">
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--blue2);margin-bottom:12px">📐 Fórmulas Aplicadas</div>
+      <div class="rg-2" id="calc-formulas">
+        <!-- filled by calcSeleccionar -->
+      </div>
+    </div>
+
+    <!-- Simulador + Registro rápido -->
+    <div class="g2">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">▶ Simulador de Uso</span>
+          <span style="font-size:.72rem;color:var(--text3)">¿Qué pasa en X días?</span>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:14px">
+            <div class="fg" style="flex:1">
+              <label>Días a simular</label>
+              <input type="number" id="sim-dias" value="30" min="1" max="365" oninput="updateSimPreview()"
+                style="font-size:1.1rem;text-align:center;font-family:var(--mono)">
+            </div>
+            <button class="btn btn-primary" onclick="simularUso()" style="margin-bottom:1px">▶ Aplicar</button>
+          </div>
+          <div id="sim-preview" style="padding:12px;background:var(--bg);border-radius:var(--r);border:1px solid var(--border);font-size:.82rem;color:var(--text2);line-height:1.6">
+            Ingresa los días para ver el impacto proyectado
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">✔ Registro Rápido de Mantenimiento</span>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="fg">
+              <label>Tipo de mantenimiento</label>
+              <select id="quick-mant-tipo">
+                <option>Preventivo</option>
+                <option>Correctivo</option>
+                <option>Predictivo</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Descripción del trabajo</label>
+              <textarea id="quick-mant-desc" rows="3" placeholder="Describe brevemente el trabajo realizado..."></textarea>
+            </div>
+            <button class="btn btn-success" onclick="registrarMantenimientoRapido()" style="width:100%">
+              ✔ Guardar y Reiniciar Ciclo
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════ IA ══════ -->
+<div class="view" id="view-ia">
+  <div class="ph">
+    <div class="ph-left"><h1>🧠 Análisis de Inteligencia Artificial</h1><p>Diagnóstico automático basado en salud, historial, costos y productividad</p></div>
+    <div class="ph-actions"><span class="ai-badge">🤖 Motor IA v2</span><button class="btn btn-ghost btn-sm" onclick="renderIA()">↻ Reanalizar</button></div>
+  </div>
+
+  <!-- Selector -->
+  <div style="background:var(--s2);border:1.5px solid var(--border2);border-radius:var(--r2);padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="font-size:.82rem;font-weight:700;color:var(--text);white-space:nowrap">🔽 Seleccionar equipo:</div>
+    <select id="ia-equipo-sel" onchange="renderIA()"
+      style="flex:1;min-width:220px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);padding:10px 14px;color:var(--text);font-family:var(--font);font-size:.88rem;outline:none;cursor:pointer">
+      <option value="">— Selecciona un equipo —</option>
+    </select>
+    <div style="font-size:.75rem;color:var(--text3)">El motor IA analizará los datos de ese equipo</div>
+  </div>
+
+  <!-- Contenido dinámico -->
+  <div id="ia-body"></div>
+</div>
+
+<!-- ══════ ALERTAS ══════ -->
+<div class="view" id="view-alertas">
+  <div class="ph">
+    <div class="ph-left"><h1>🔔 Centro de Alertas</h1><p>Notificaciones de mantenimiento y equipos en estado crítico</p></div>
+    <div class="ph-actions">
+      <select id="alerta-filtro" onchange="renderAlertas()" style="background:var(--s3);border:1px solid var(--border);border-radius:var(--r);padding:7px 12px;color:var(--text);font-family:var(--font);font-size:.81rem;outline:none;">
+        <option value="all">Todas las alertas</option><option value="crit">Solo Críticas</option><option value="warn">Solo Advertencias</option><option value="ok">Solo OK</option>
+      </select>
+    </div>
+  </div>
+  <div class="g3" style="margin-bottom:14px" id="alerta-stats"></div>
+  <div id="alertas-list"></div>
+</div>
+
+<!-- ══════ HISTORIAL ══════ -->
+<div class="view" id="view-historial">
+  <div class="ph">
+    <div class="ph-left"><h1>📋 Historial de Mantenimientos</h1><p>Registro cronológico de todas las intervenciones realizadas</p></div>
+    <div class="ph-actions">
+      <select id="hist-filtro-eq" onchange="renderHistorial()" style="background:var(--s3);border:1px solid var(--border);border-radius:var(--r);padding:7px 12px;color:var(--text);font-family:var(--font);font-size:.81rem;outline:none;"><option value="all">Todos los equipos</option></select>
+      <select id="hist-filtro-tipo" onchange="renderHistorial()" style="background:var(--s3);border:1px solid var(--border);border-radius:var(--r);padding:7px 12px;color:var(--text);font-family:var(--font);font-size:.81rem;outline:none;"><option value="all">Todos los tipos</option><option>Preventivo</option><option>Correctivo</option><option>Predictivo</option></select>
+    </div>
+  </div>
+  <div id="hist-ia-analisis"></div>
+  <div class="g3" style="margin-bottom:14px" id="hist-stats"></div>
+  <div class="card"><div class="card-head"><span class="card-title">Línea de Tiempo</span><span id="hist-count" style="font-size:.76rem;color:var(--text3)"></span></div><div class="card-body" style="padding-top:6px"><div class="timeline" id="hist-list" style="overflow-x:hidden"></div></div></div>
+</div>
+
+<!-- ══════ MANTENIMIENTO ══════ -->
+<div class="view" id="view-mantenimiento">
+  <div class="ph">
+    <div class="ph-left"><h1>🔧 Registrar Mantenimiento</h1><p>Documenta el trabajo realizado y reinicia el ciclo del equipo</p></div>
+  </div>
+  <div class="g57">
+    <div class="card">
+      <div class="card-head"><span class="card-title">🔧 Nuevo Registro</span></div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:13px">
+          <div class="fg"><label>Equipo *</label><select id="m-equipo" onchange="updateMantPreview()"><option value="">— Seleccionar equipo —</option></select></div>
+          <div class="fg"><label>Tipo de Mantenimiento *</label>
+            <select id="m-tipo">
+              <option value="Preventivo">🟢 Preventivo — Programado antes de la falla</option>
+              <option value="Correctivo">🔴 Correctivo — Después de la falla</option>
+              <option value="Predictivo">🔵 Predictivo — Basado en análisis de condición</option>
+            </select>
+          </div>
+          <div class="fg"><label>Fecha de Realización *</label><input type="date" id="m-fecha"></div>
+          <div class="fg"><label>Técnico Responsable</label><input type="text" id="m-tecnico" placeholder="Nombre del técnico"></div>
+          <div class="fg"><label>Descripción / Trabajos Realizados *</label><textarea id="m-desc" rows="4" placeholder="Describe los trabajos, piezas reemplazadas y observaciones..."></textarea></div>
+          <div class="fg"><label>Costo del Mantenimiento (COP)</label><input type="number" id="m-costo" placeholder="0.00" min="0" step="0.01"></div>
+          <button class="btn btn-success" style="width:100%" onclick="registrarMantenimiento()">✔ Guardar y Reiniciar Ciclo</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:13px">
+      <div class="card"><div class="card-head"><span class="card-title">📋 Estado Actual</span></div><div class="card-body" id="mant-preview"><div class="empty"><div class="empty-icon">⚙️</div><p>Selecciona un equipo</p></div></div></div>
+      <div class="card">
+        <div class="card-head"><span class="card-title">ℹ️ Guía de Tipos</span></div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:9px;font-size:.8rem">
+            <div style="padding:9px;background:rgba(34,197,94,.06);border-radius:var(--r);border-left:3px solid var(--green)">
+              <div style="font-weight:700;color:var(--green2);margin-bottom:2px">🟢 Preventivo</div>
+              <div style="color:var(--text2)">Mantenimiento programado según horas de operación. Evita fallas antes de que ocurran. <strong style="color:var(--green)">~3.2× más económico que el correctivo.</strong></div>
+            </div>
+            <div style="padding:9px;background:rgba(239,68,68,.06);border-radius:var(--r);border-left:3px solid var(--red)">
+              <div style="font-weight:700;color:var(--red2);margin-bottom:2px">🔴 Correctivo</div>
+              <div style="color:var(--text2)">Se realiza después de una falla. Mayor costo por mano de obra urgente, repuestos de emergencia y tiempo muerto de producción.</div>
+            </div>
+            <div style="padding:9px;background:rgba(232,120,32,.06);border-radius:var(--r);border-left:3px solid var(--blue)">
+              <div style="font-weight:700;color:var(--blue2);margin-bottom:2px">🔵 Predictivo</div>
+              <div style="color:var(--text2)">Basado en análisis de condición (vibración, temperatura, presión). Anticipa fallas con mayor precisión que el preventivo.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ REPORTE ══════ -->
+<div class="view" id="view-reporte">
+  <div class="ph">
+    <div class="ph-left"><h1>📄 Generar Reporte</h1><p>Reporte ejecutivo del estado completo del sistema de mantenimiento</p></div>
+    <div class="ph-actions">
+      <button class="btn btn-ghost btn-sm" onclick="renderReporte()">↻ Actualizar</button>
+      <button class="btn btn-purple btn-sm" onclick="imprimirReporte()">🖨 Imprimir / PDF</button>
+    </div>
+  </div>
+  <div id="reporte-contenido"></div>
+</div>
+
+<!-- ══════ REPORTE DE FALLAS ══════ -->
+<div class="view" id="view-fallas">
+  <div class="ph">
+    <div class="ph-left"><h1>⚠️ Reporte de Fallas</h1><p>Registro y seguimiento de incidencias operativas</p></div>
+    <div class="ph-actions">
+      <button class="btn-export" onclick="exportarFallas()">📥 Exportar CSV</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-falla')">+ Reportar Falla</button>
+    </div>
+  </div>
+  <div class="stat-grid" id="falla-stats" style="margin-bottom:14px"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    <select id="falla-filtro" onchange="renderFallas()" style="background:var(--s3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;color:var(--text);font-family:var(--font);font-size:.82rem;outline:none">
+      <option value="all">Todas las fallas</option>
+      <option value="reportada">Reportadas</option>
+      <option value="en_proceso">En proceso</option>
+      <option value="resuelta">✅ Resueltas</option>
+    </select>
+  </div>
+  <div id="fallas-list"></div>
+</div>
+
+<!-- ══════ GESTIÓN DE ACTIVOS ══════ -->
+<div class="view" id="view-activos">
+  <div class="ph">
+    <div class="ph-left">
+      <h1>🗂️ Gestión de Activos Empresariales</h1>
+      <p>Inventario completo de activos fijos con QR, trazabilidad y análisis IA</p>
+    </div>
+    <div class="ph-actions">
+      <button class="btn-export" onclick="exportarActivosCSV()">📥 Exportar CSV</button>
+      <button class="btn btn-primary btn-sm" onclick="abrirModalActivo()">+ Registrar Activo</button>
+    </div>
+  </div>
+
+  <!-- Stats dashboard activos -->
+  <div class="stat-grid" id="act-stats" style="margin-bottom:16px"></div>
+
+  <!-- IA organizacional -->
+  <div id="act-ia-panel" style="margin-bottom:14px"></div>
+
+  <!-- Filtros y búsqueda -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-body" style="padding:12px">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <div class="search-wrap" style="flex:1;min-width:180px">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="act-search" placeholder="Buscar activo, serial, responsable..." oninput="renderActivos()">
+        </div>
+        <select id="act-filtro-cat" onchange="renderActivos()" style="background:var(--s3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;color:var(--text);font-family:var(--font);font-size:.82rem;outline:none">
+          <option value="">Todas las categorías</option>
+          <option>Computadores</option><option>Portátiles</option><option>Impresoras</option>
+          <option>Teclados</option><option>Mouses</option><option>Escritorios</option>
+          <option>Sillas</option><option>Aires Acondicionados</option><option>Televisores</option>
+          <option>Routers</option><option>Cámaras</option><option>UPS</option><option>Servidores</option><option>Otro</option>
+        </select>
+        <select id="act-filtro-estado" onchange="renderActivos()" style="background:var(--s3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;color:var(--text);font-family:var(--font);font-size:.82rem;outline:none">
+          <option value="">Todos los estados</option>
+          <option value="operativo">✅ Operativo</option>
+          <option value="dañado">⚠️ Dañado</option>
+          <option value="baja">🔴 Dado de baja</option>
+          <option value="mantenimiento">🔧 En mantenimiento</option>
+        </select>
+        <select id="act-filtro-sede" onchange="renderActivos()" style="background:var(--s3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;color:var(--text);font-family:var(--font);font-size:.82rem;outline:none">
+          <option value="">Todas las sedes</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de activos -->
+  <div id="act-list"></div>
+</div>
+
+<!-- ══════ EMPRESAS (SOLO SUPERADMIN) ══════ -->
+<div class="view" id="view-empresas">
+  <div class="ph">
+    <div class="ph-left">
+      <h1>🏢 Gestión de Empresas</h1>
+      <p>Panel exclusivo Super Admin — registra y administra las organizaciones del sistema</p>
+    </div>
+    <div class="ph-actions">
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-nueva-empresa')">+ Nueva Empresa</button>
+    </div>
+  </div>
+  <div style="background:linear-gradient(135deg,rgba(232,120,32,.1),rgba(232,120,32,.08));border:1px solid rgba(232,120,32,.25);border-radius:var(--r2);padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
+    <span style="font-size:1.4rem">🌐</span>
+    <div>
+      <div style="font-weight:700;color:var(--purple2);font-size:.9rem">Vista Global — Super Administrador</div>
+      <div style="font-size:.79rem;color:var(--text2);margin-top:2px">Esta sección es invisible para todos los demás roles. Aquí se crean y gestionan todas las empresas que usan SIMPOE.</div>
+    </div>
+  </div>
+  <div class="stat-grid" style="margin-bottom:14px" id="emp-stats"></div>
+  <div id="emp-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:12px"></div>
+</div>
+
+<!-- ══════ USUARIOS (SOLO ADMIN) ══════ -->
+<div class="view" id="view-usuarios">
+  <div class="ph">
+    <div class="ph-left">
+      <h1>👥 Gestión de Usuarios</h1>
+      <p>Panel exclusivo del administrador — crear, visualizar y administrar accesos al sistema</p>
+    </div>
+    <div class="ph-actions">
+      <button class="btn btn-primary btn-sm" onclick="abrirModalNuevoUsuario()">+ Nuevo Usuario</button>
+    </div>
+  </div>
+
+  <!-- Acceso restringido banner -->
+  <div style="background:linear-gradient(135deg,rgba(232,120,32,.1),rgba(232,120,32,.08));border:1px solid rgba(232,120,32,.25);border-radius:var(--r2);padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
+    <span style="font-size:1.4rem">🔐</span>
+    <div>
+      <div style="font-weight:700;color:var(--purple2);font-size:.9rem">Sección Restringida — Solo Administrador</div>
+      <div style="font-size:.79rem;color:var(--text2);margin-top:2px">Esta sección es invisible para usuarios con rol Técnico. Solo el administrador puede crear y gestionar usuarios del sistema.</div>
+    </div>
+  </div>
+
+  <!-- Stats de usuarios -->
+  <div class="g3" style="margin-bottom:18px" id="usr-stats"></div>
+
+  <!-- Tabla de usuarios -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">📋 Usuarios Registrados</span>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="usr-search" placeholder="Buscar usuario..." oninput="renderUsuarios()">
+      </div>
+    </div>
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Correo</th>
+            <th>Rol</th>
+            <th>Empresa</th>
+            <th>Creado por</th>
+            <th>Fecha creación</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="usr-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- MODAL EQUIPO -->
+<div class="overlay" id="modal-equipo">
+  <div class="modal" style="width:680px;max-height:92vh">
+    <div class="modal-head"><h2>⚙️ Registrar Nuevo Equipo</h2><button class="modal-close" onclick="closeModal('modal-equipo')">✕</button></div>
+    <div class="modal-body">
+
+      <!-- SECCIÓN 1: Identificación -->
+      <div class="form-sec-title">📋 Identificación del Equipo</div>
+      <div class="form-grid" style="margin-bottom:16px">
+        <div class="fg">
+          <label>Nombre del Equipo *</label>
+          <input type="text" id="eq-nombre" placeholder="Ej: Motor Principal #1">
+          <span class="field-hint">Nombre único para identificar el equipo en el sistema.</span>
+        </div>
+        <div class="fg">
+          <label>Tipo de Equipo *</label>
+          <select id="eq-tipo"><option>Motor</option><option>Bomba</option><option>Aire Acondicionado</option><option>Compresor</option><option>Bus / Vehículo</option><option>Generador</option><option>Transformador</option><option>Banda Transportadora</option><option>Otro</option></select>
+          <span class="field-hint">Categoría según su función industrial.</span>
+        </div>
+        <div class="fg">
+          <label>Fabricante</label>
+          <input type="text" id="eq-fabricante" placeholder="Ej: Siemens, ABB, WEG">
+          <span class="field-hint">Empresa que fabricó el equipo.</span>
+        </div>
+        <div class="fg">
+          <label>Modelo</label>
+          <input type="text" id="eq-modelo" placeholder="Ej: 1LA7 113-4AA10">
+          <span class="field-hint">Referencia exacta del modelo del equipo.</span>
+        </div>
+        <div class="fg">
+          <label>Número de Serie</label>
+          <input type="text" id="eq-serie" placeholder="Ej: SN-2024-00123">
+          <span class="field-hint">Código único del fabricante. Aparece en la etiqueta QR.</span>
+        </div>
+        <div class="fg">
+          <label>Vida Útil Estimada (años)</label>
+          <input type="number" id="eq-vida-util" placeholder="Ej: 10" min="1" max="50">
+          <span class="field-hint">Años de vida útil según el fabricante o estándares industriales.</span>
+        </div>
+        <div class="fg form-full">
+          <label>Ubicación / Área</label>
+          <input type="text" id="eq-ubicacion" placeholder="Ej: Planta 1 — Área de Producción">
+          <span class="field-hint">Lugar físico donde está instalado el equipo.</span>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 2: Parámetros de Mantenimiento -->
+      <div class="form-sec-title">⚙️ Parámetros de Mantenimiento</div>
+      <div class="form-grid" style="margin-bottom:16px">
+        <div class="fg">
+          <label>Horas Recomendadas por Ciclo *</label>
+          <input type="number" id="eq-horas-rec" placeholder="500" min="1">
+          <span class="field-hint">Horas de operación antes del próximo mantenimiento. Consulta el manual del fabricante.</span>
+        </div>
+        <div class="fg">
+          <label>Horas de Operación por Día *</label>
+          <input type="number" id="eq-horas-dia" placeholder="8" min="0.5" max="24" step="0.5">
+          <span class="field-hint">Promedio de horas diarias de uso. Determina cuántos días quedan para mantenimiento.</span>
+        </div>
+        <div class="fg">
+          <label>Factor de Uso *</label>
+          <input type="number" id="eq-factor" placeholder="1.0" min="0.1" max="3" step="0.1">
+          <span class="field-hint"><strong>1.0</strong> = normal · <strong>&gt;1.0</strong> = uso intensivo (desgaste acelerado) · <strong>&lt;1.0</strong> = uso ligero.</span>
+        </div>
+        <div class="fg">
+          <label>Horas Acumuladas Actuales</label>
+          <input type="number" id="eq-horas-acum" placeholder="0" min="0">
+          <span class="field-hint">Horas desde el último mantenimiento. Ingresa 0 si es equipo nuevo o recién mantenido.</span>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 3: Condición Técnica -->
+      <div class="form-sec-title">🧠 Condición Técnica del Equipo</div>
+      <div class="form-grid" style="margin-bottom:16px">
+        <div class="fg">
+          <label>Nivel de Criticidad *</label>
+          <select id="eq-criticidad">
+            <option value="alta">🔴 Alta — Impacto crítico en la operación</option>
+            <option value="media" selected>🟡 Media — Impacto moderado en la operación</option>
+            <option value="baja">🟢 Baja — Impacto mínimo en la operación</option>
+          </select>
+          <span class="field-hint">Define el impacto del equipo en la operación del sistema. Alta = detener la planta si falla.</span>
+        </div>
+        <div class="fg">
+          <label>Condiciones de Operación</label>
+          <div id="eq-condiciones" style="background:var(--s3);border:1.5px solid var(--border);border-radius:var(--r);padding:10px;display:flex;flex-direction:column;gap:7px">
+            <label class="cls-chk-label"><input type="checkbox" value="normal" checked style="accent-color:var(--blue)"> 🌤 Normal</label>
+            <label class="cls-chk-label"><input type="checkbox" value="polvo" style="accent-color:var(--blue)"> 💨 Polvo</label>
+            <label class="cls-chk-label"><input type="checkbox" value="alta-temp" style="accent-color:var(--blue)"> 🌡️ Alta Temperatura</label>
+            <label class="cls-chk-label"><input type="checkbox" value="humedad" style="accent-color:var(--blue)"> 💧 Humedad</label>
+            <label class="cls-chk-label"><input type="checkbox" value="corrosivo" style="accent-color:var(--blue)"> ⚗️ Ambientes Corrosivos</label>
+          </div>
+          <span class="field-hint">Puedes seleccionar múltiples condiciones. Afecta las recomendaciones de IA.</span>
+        </div>
+        <div class="fg">
+          <label>¿Requiere Calibración?</label>
+          <select id="eq-requiere-cal" onchange="toggleCalibracion()">
+            <option value="no">No — No requiere calibración periódica</option>
+            <option value="si">Sí — Requiere calibración periódica</option>
+          </select>
+          <span class="field-hint">Equipos de medición, sensores e instrumentación generalmente requieren calibración.</span>
+        </div>
+        <div class="fg" id="eq-cal-frecuencia-wrap" style="display:none">
+          <label>Frecuencia de Calibración (días)</label>
+          <input type="number" id="eq-cal-frecuencia" placeholder="Ej: 180" min="1">
+          <span class="field-hint">Cada cuántos días debe calibrarse el equipo según normativa o fabricante.</span>
+        </div>
+        <div class="fg" id="eq-cal-ultima-wrap" style="display:none">
+          <label>Fecha de Última Calibración</label>
+          <input type="date" id="eq-cal-ultima">
+          <span class="field-hint">Fecha de la última calibración realizada. Se usará para calcular la próxima.</span>
+        </div>
+        <div class="fg form-full">
+          <label>Notas / Observaciones Técnicas</label>
+          <textarea id="eq-notas" placeholder="Ej: Requiere aceite SAE 40 · Revisión semestral de sellos · Torque máx. 120 Nm..."></textarea>
+          <span class="field-hint">Información técnica adicional visible en el detalle del equipo y en el reporte ejecutivo.</span>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 4: Documentación -->
+      <div class="form-sec-title">📂 Documentación del Equipo</div>
+      <div style="margin-bottom:14px">
+        <div style="background:var(--bg);border:2px dashed var(--border2);border-radius:var(--r);padding:16px;text-align:center;cursor:pointer;transition:all .2s" 
+             onclick="document.getElementById('eq-docs-input').click()"
+             ondragover="event.preventDefault();this.style.borderColor='var(--blue)'" 
+             ondragleave="this.style.borderColor='var(--border2)'"
+             ondrop="handleDocDrop(event)">
+          <input type="file" id="eq-docs-input" multiple accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none" onchange="handleDocSelect(event)">
+          <div style="font-size:1.6rem;margin-bottom:6px">📎</div>
+          <div style="font-size:.85rem;font-weight:600;color:var(--text)">Arrastra archivos aquí o haz clic para seleccionar</div>
+          <div style="font-size:.73rem;color:var(--text3);margin-top:4px">Formatos aceptados: PDF, JPG, PNG · Máx. 5 archivos · 10 MB c/u</div>
+        </div>
+        <div id="eq-docs-lista" style="margin-top:10px;display:flex;flex-direction:column;gap:6px"></div>
+        <span class="field-hint">Manual del fabricante, ficha técnica, certificados, fotos del equipo.</span>
+      </div>
+
+      <!-- Preview cálculo -->
+      <div id="eq-preview" style="margin-bottom:12px;padding:11px;background:var(--bg);border-radius:var(--r);border:1px solid var(--border);font-size:.8rem;display:none"></div>
+
+      <!-- Campos extra por sector -->
+      <div id="campos-extra-sector"></div>
+
+      <!-- QR info -->
+      <div class="form-sec-title">📱 Etiqueta QR</div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:12px;display:flex;align-items:center;gap:14px">
+        <div style="width:52px;height:52px;background:var(--s3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">📱</div>
+        <div style="font-size:.79rem;color:var(--text2)"><strong style="color:var(--text)">El QR se genera automáticamente al guardar.</strong> Contiene nombre, tipo, serie y código SIMPOE. Imprime y pega en el equipo como etiqueta permanente.</div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-equipo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEquipo()">✔ Guardar Equipo y Generar QR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="overlay" id="modal-detalle">
+  <div class="modal" style="width:min(580px,96vw)">
+    <div class="modal-head"><h2 id="detalle-title">Detalle del Equipo</h2><button class="modal-close" onclick="closeModal('modal-detalle')">✕</button></div>
+    <div class="modal-body" id="detalle-body"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-detalle')">Cerrar</button>
+      <button class="btn btn-warn btn-sm" id="detalle-btn-mant">🔧 Registrar Mant.</button>
+      <button class="btn btn-primary btn-sm" id="detalle-btn-graf">📈 Ver Gráfica</button>
+      <button class="btn btn-ghost btn-sm" id="detalle-btn-qr">📱 Ver QR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVA EMPRESA -->
+<div class="overlay" id="modal-nueva-empresa">
+  <div class="modal" style="width:640px;max-height:92vh">
+    <div class="modal-head">
+      <h2>🏢 Crear Nueva Empresa</h2>
+      <button class="modal-close" onclick="closeModal('modal-nueva-empresa')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(232,120,32,.08);border:1px solid rgba(232,120,32,.2);border-radius:var(--r);padding:11px 14px;margin-bottom:16px;font-size:.81rem;color:var(--blue2);">
+        🌐 <strong>Super Admin</strong> — Al crear la empresa se generará su Administrador. El <strong>tipo de empresa</strong> adapta formularios, dashboard e IA del sistema.
+      </div>
+      <div class="form-sec-title">🏢 Datos de la Empresa</div>
+      <div class="form-grid" style="margin-bottom:16px">
+        <div class="fg form-full">
+          <label>Nombre de la Empresa *</label>
+          <input type="text" id="ne-nombre" placeholder="Ej: Transportes García S.A.S">
+        </div>
+        <div class="fg">
+          <label>NIT / RUT *</label>
+          <input type="text" id="ne-nit" placeholder="Ej: 900.123.456-7">
+        </div>
+        <div class="fg">
+          <label>Responsable / Gerente *</label>
+          <input type="text" id="ne-responsable" placeholder="Ej: Carlos García">
+          <span class="field-hint">Nombre del responsable principal de la empresa.</span>
+        </div>
+        <div class="fg">
+          <label>Ciudad *</label>
+          <input type="text" id="ne-ciudad" placeholder="Ej: Barranquilla">
+        </div>
+        <div class="fg">
+          <label>País</label>
+          <input type="text" id="ne-pais" value="Colombia">
+        </div>
+        <div class="fg">
+          <label>Teléfono</label>
+          <input type="text" id="ne-telefono" placeholder="Ej: +57 305 000 0000">
+        </div>
+        <div class="fg form-full">
+          <label>Correo Corporativo</label>
+          <input type="email" id="ne-email" placeholder="Ej: contacto@empresa.co">
+        </div>
+        <div class="fg form-full">
+          <label>Tipo de Empresa *</label>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px">
+            <div id="tipo-btn-transporte" onclick="selTipoEmpresa('transporte')"
+              style="display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 10px;background:var(--s3);border:2px solid var(--border);border-radius:var(--r2);cursor:pointer;transition:all .2s;text-align:center">
+              <span style="font-size:1.8rem">🚌</span>
+              <span style="font-size:.82rem;font-weight:700;color:var(--text)">Transporte</span>
+              <span style="font-size:.7rem;color:var(--text3)">Flotas y buses</span>
+            </div>
+            <div id="tipo-btn-industrial" onclick="selTipoEmpresa('industrial')"
+              style="display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 10px;background:var(--s3);border:2px solid var(--border);border-radius:var(--r2);cursor:pointer;transition:all .2s;text-align:center">
+              <span style="font-size:1.8rem">⚙️</span>
+              <span style="font-size:.82rem;font-weight:700;color:var(--text)">Industrial</span>
+              <span style="font-size:.7rem;color:var(--text3)">Maquinaria industrial</span>
+            </div>
+            <div id="tipo-btn-construccion" onclick="selTipoEmpresa('construccion')"
+              style="display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 10px;background:var(--s3);border:2px solid var(--border);border-radius:var(--r2);cursor:pointer;transition:all .2s;text-align:center">
+              <span style="font-size:1.8rem">🏗️</span>
+              <span style="font-size:.82rem;font-weight:700;color:var(--text)">Construcción</span>
+              <span style="font-size:.7rem;color:var(--text3)">Maquinaria pesada</span>
+            </div>
+            <div id="tipo-btn-activos" onclick="selTipoEmpresa('activos')"
+              style="display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 10px;background:var(--s3);border:2px solid var(--border);border-radius:var(--r2);cursor:pointer;transition:all .2s;text-align:center">
+              <span style="font-size:1.8rem">🗂️</span>
+              <span style="font-size:.82rem;font-weight:700;color:var(--text)">Activos</span>
+              <span style="font-size:.7rem;color:var(--text3)">Inventario empresarial</span>
+            </div>
+          </div>
+          <input type="hidden" id="ne-tipo-empresa" value="">
+          <span class="field-hint" id="ne-tipo-hint" style="margin-top:8px">Selecciona el tipo — adapta formularios, dashboard e IA automáticamente.</span>
+        </div>
+        <div class="fg">
+          <label>Color Corporativo</label>
+          <input type="color" id="ne-color" value="#e87820" style="height:38px;padding:4px;">
+        </div>
+        <div class="fg">
+          <label>Sigla / Iniciales</label>
+          <input type="text" id="ne-logo" placeholder="Ej: TG" maxlength="3">
+        </div>
+      </div>
+      <div class="form-sec-title">👑 Administrador de la Empresa</div>
+      <div class="form-grid" style="margin-bottom:10px">
+        <div class="fg">
+          <label>Nombre del Administrador *</label>
+          <input type="text" id="ne-admin-nombre" placeholder="Ej: Carlos Rodríguez">
+        </div>
+        <div class="fg">
+          <label>Correo *</label>
+          <input type="email" id="ne-admin-email" placeholder="Ej: admin@empresa.co">
+        </div>
+        <div class="fg">
+          <label>Contraseña *</label>
+          <input type="password" id="ne-admin-pass" placeholder="Mínimo 4 caracteres">
+        </div>
+        <div class="fg">
+          <label>Confirmar Contraseña *</label>
+          <input type="password" id="ne-admin-pass2" placeholder="Repite la contraseña">
+        </div>
+      </div>
+      <div id="ne-error" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:var(--r);padding:9px 13px;font-size:.82rem;color:var(--red2);margin-top:8px;display:none;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-nueva-empresa')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearEmpresa()">🏢 Crear Empresa y Administrador</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL REGISTRAR ACTIVO -->
+<div class="overlay" id="modal-activo">
+  <div class="modal" style="width:min(700px,96vw);max-height:92vh">
+    <div class="modal-head">
+      <h2 id="modal-activo-titulo">🗂️ Registrar Activo</h2>
+      <button class="modal-close" onclick="closeModal('modal-activo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-sec-title">📋 Identificación</div>
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="fg"><label>Nombre del Activo *</label><input type="text" id="act-nombre" placeholder="Ej: Laptop Dell Inspiron"><span class="field-hint">Nombre descriptivo del activo.</span></div>
+        <div class="fg"><label>Categoría *</label>
+          <select id="act-cat">
+            <option value="">— Selecciona —</option>
+            <option>Computadores</option><option>Portátiles</option><option>Impresoras</option>
+            <option>Teclados</option><option>Mouses</option><option>Escritorios</option>
+            <option>Sillas</option><option>Aires Acondicionados</option><option>Televisores</option>
+            <option>Routers</option><option>Cámaras</option><option>UPS</option><option>Servidores</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="fg"><label>Marca</label><input type="text" id="act-marca" placeholder="Ej: Dell, HP, Samsung"></div>
+        <div class="fg"><label>Modelo</label><input type="text" id="act-modelo" placeholder="Ej: Inspiron 15 3000"></div>
+        <div class="fg"><label>Serial / N° Serie</label><input type="text" id="act-serial" placeholder="Ej: SN-DELL-2024-001"><span class="field-hint">Número de serie del fabricante.</span></div>
+        <div class="fg"><label>Estado *</label>
+          <select id="act-estado">
+            <option value="operativo">✅ Operativo</option>
+            <option value="dañado">⚠️ Dañado</option>
+            <option value="mantenimiento">🔧 En mantenimiento</option>
+            <option value="baja">🔴 Dado de baja</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-sec-title">📍 Ubicación</div>
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="fg"><label>Sede *</label><input type="text" id="act-sede" placeholder="Ej: Sede Principal, Barranquilla"><span class="field-hint">Sede o sucursal donde se encuentra el activo.</span></div>
+        <div class="fg"><label>Área</label><input type="text" id="act-area" placeholder="Ej: Recursos Humanos"></div>
+        <div class="fg"><label>Oficina / Puesto</label><input type="text" id="act-oficina" placeholder="Ej: Oficina 201"></div>
+        <div class="fg"><label>Responsable</label><input type="text" id="act-responsable" placeholder="Ej: María López"><span class="field-hint">Persona asignada a este activo.</span></div>
+      </div>
+      <div class="form-sec-title">💰 Adquisición</div>
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="fg"><label>Fecha de Compra</label><input type="date" id="act-fecha-compra"></div>
+        <div class="fg"><label>Garantía hasta</label><input type="date" id="act-garantia"><span class="field-hint">Fecha de vencimiento de la garantía.</span></div>
+        <div class="fg"><label>Proveedor</label><input type="text" id="act-proveedor" placeholder="Ej: Compumax S.A.S"></div>
+        <div class="fg"><label>Costo (COP)</label><input type="number" id="act-costo" placeholder="Ej: 3500000" min="0"><span class="field-hint">Valor de compra en pesos colombianos.</span></div>
+        <div class="fg form-full"><label>Observaciones</label><textarea id="act-obs" rows="2" placeholder="Notas adicionales sobre el activo..."></textarea></div>
+      </div>
+      <div id="act-modal-error" style="background:rgba(220,53,53,.1);border:1px solid rgba(220,53,53,.3);border-radius:var(--r);padding:9px 13px;font-size:.82rem;color:var(--red2);display:none;margin-top:8px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-activo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarActivo()">✔ Guardar Activo y Generar QR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MOVER ACTIVO -->
+<div class="overlay" id="modal-mover-activo">
+  <div class="modal" style="width:min(500px,96vw)">
+    <div class="modal-head">
+      <h2>🔄 Mover / Transferir Activo</h2>
+      <button class="modal-close" onclick="closeModal('modal-mover-activo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="mover-activo-info" style="background:var(--s3);border-radius:var(--r);padding:11px 13px;margin-bottom:14px;font-size:.84rem;color:var(--text2)"></div>
+      <div class="form-grid">
+        <div class="fg"><label>Nueva Sede *</label><input type="text" id="mover-sede" placeholder="Ej: Sede Norte"></div>
+        <div class="fg"><label>Nueva Área</label><input type="text" id="mover-area" placeholder="Ej: Contabilidad"></div>
+        <div class="fg"><label>Nueva Oficina</label><input type="text" id="mover-oficina" placeholder="Ej: Oficina 105"></div>
+        <div class="fg"><label>Nuevo Responsable</label><input type="text" id="mover-responsable" placeholder="Ej: Juan Pérez"></div>
+        <div class="fg form-full"><label>Motivo del movimiento</label><textarea id="mover-motivo" rows="2" placeholder="Ej: Rotación de personal, nueva sede..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-mover-activo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarMovimiento()">✔ Confirmar Movimiento</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL BAJA ACTIVO -->
+<div class="overlay" id="modal-baja-activo">
+  <div class="modal" style="width:min(480px,96vw)">
+    <div class="modal-head">
+      <h2>🔴 Dar de Baja Activo</h2>
+      <button class="modal-close" onclick="closeModal('modal-baja-activo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="baja-activo-info" style="background:rgba(220,53,53,.07);border:1px solid rgba(220,53,53,.2);border-radius:var(--r);padding:11px 13px;margin-bottom:14px;font-size:.84rem;color:var(--text2)"></div>
+      <div class="form-grid">
+        <div class="fg"><label>Motivo de baja *</label>
+          <select id="baja-motivo">
+            <option value="">— Selecciona motivo —</option>
+            <option>Obsolescencia tecnológica</option><option>Daño irreparable</option>
+            <option>Robo / Pérdida</option><option>Donación</option><option>Venta</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="fg form-full"><label>Observaciones de baja</label><textarea id="baja-obs" rows="2" placeholder="Describe el motivo de la baja..."></textarea></div>
+      </div>
+      <div style="background:rgba(220,53,53,.06);border:1px solid rgba(220,53,53,.15);border-radius:var(--r);padding:10px 13px;margin-top:10px;font-size:.8rem;color:var(--text3)">
+        ⚠️ El activo quedará marcado como <strong style="color:var(--red2)">Dado de Baja</strong> y pasará al historial. Esta acción se puede revertir.
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-baja-activo')">Cancelar</button>
+      <button class="btn btn-danger" onclick="confirmarBaja()">🔴 Confirmar Baja</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER ACTIVO (QR + detalle) -->
+<div class="overlay" id="modal-ver-activo">
+  <div class="modal" style="width:min(560px,96vw)">
+    <div class="modal-head">
+      <h2 id="ver-activo-titulo">🗂️ Detalle del Activo</h2>
+      <button class="modal-close" onclick="closeModal('modal-ver-activo')">✕</button>
+    </div>
+    <div class="modal-body" id="ver-activo-body"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-ver-activo')">Cerrar</button>
+      <button class="btn btn-ghost btn-sm" id="btn-activo-editar">✏️ Editar</button>
+      <button class="btn btn-warn btn-sm" id="btn-activo-mover">🔄 Mover</button>
+      <button class="btn btn-primary btn-sm" id="btn-activo-qr">📱 Ver QR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL QR ACTIVO -->
+<div class="overlay" id="modal-qr-activo">
+  <div class="modal" style="width:min(400px,96vw)">
+    <div class="modal-head">
+      <h2>📱 Etiqueta QR — Activo</h2>
+      <button class="modal-close" onclick="closeModal('modal-qr-activo')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-qr-activo-body" style="text-align:center"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-qr-activo')">Cerrar</button>
+      <button class="btn btn-primary" onclick="imprimirQRActivo()">🖨 Imprimir Etiqueta</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO USUARIO -->
+<div class="overlay" id="modal-nuevo-usuario">
+  <div class="modal" style="width:min(500px,96vw)">
+    <div class="modal-head">
+      <h2>👤 Crear Nuevo Usuario</h2>
+      <button class="modal-close" onclick="closeModal('modal-nuevo-usuario')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Solo admin puede ver este modal -->
+      <div style="background:rgba(232,120,32,.08);border:1px solid rgba(232,120,32,.2);border-radius:var(--r);padding:10px 13px;margin-bottom:16px;font-size:.8rem;color:var(--purple2);">
+        🔐 Estás creando un usuario como <strong id="modal-usr-creador">Administrador</strong>. Quedará registrado como el creador de esta cuenta.
+      </div>
+      <div class="form-grid">
+        <div class="fg form-full">
+          <label>Nombre completo *</label>
+          <input type="text" id="nu-nombre" placeholder="Ej: Carlos Pérez">
+        </div>
+        <div class="fg form-full">
+          <label>Correo electrónico *</label>
+          <input type="email" id="nu-email" placeholder="correo@empresa.com">
+        </div>
+        <div class="fg">
+          <label>Contraseña *</label>
+          <input type="password" id="nu-pass" placeholder="Mínimo 4 caracteres">
+        </div>
+        <div class="fg">
+          <label>Confirmar contraseña *</label>
+          <input type="password" id="nu-pass2" placeholder="Repite la contraseña">
+        </div>
+        <div class="fg form-full">
+          <label>Rol del usuario *</label>
+          <select id="nu-role">
+            <option value="tecnico">🔧 Técnico — Equipos, mantenimientos, consultas operativas</option>
+            <option value="operador">⚠️ Operador — Solo reporte de fallas</option>
+            <option value="admin">👑 Administrador — Control completo dentro de la empresa</option>
+          </select>
+        </div>
+        <div class="fg form-full" id="nu-empresa-wrap">
+          <label>Empresa *</label>
+          <select id="nu-empresa-id">
+            <option value="">— Selecciona empresa —</option>
+          </select>
+          <span class="field-hint">El usuario solo podrá ver y gestionar datos de su empresa asignada.</span>
+        </div>
+      </div>
+      <div id="nu-error" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:var(--r);padding:9px 13px;font-size:.82rem;color:var(--red2);margin-top:12px;display:none;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-nuevo-usuario')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearUsuario()">✔ Crear Usuario</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER USUARIO -->
+<div class="overlay" id="modal-ver-usuario">
+  <div class="modal" style="width:min(460px,96vw)">
+    <div class="modal-head">
+      <h2 id="modal-vu-titulo">Detalle del Usuario</h2>
+      <button class="modal-close" onclick="closeModal('modal-ver-usuario')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-vu-body"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-ver-usuario')">Cerrar</button>
+      <button class="btn btn-warn btn-sm" id="modal-vu-reset" style="display:none">🔑 Restablecer Contraseña</button>
+      <button class="btn btn-danger btn-sm" id="modal-vu-eliminar">🗑 Eliminar Usuario</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL QR ETIQUETA -->
+<div class="overlay" id="modal-qr">
+  <div class="modal" style="width:min(420px,96vw)">
+    <div class="modal-head">
+      <h2>📱 Etiqueta QR del Equipo</h2>
+      <button class="modal-close" onclick="closeModal('modal-qr')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-qr-body" style="text-align:center"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-qr')">Cerrar</button>
+      <button class="btn btn-primary" onclick="imprimirQR()">🖨 Imprimir Etiqueta</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REPORTAR FALLA -->
+<div class="overlay" id="modal-falla">
+  <div class="modal" style="width:600px;max-height:92vh">
+    <div class="modal-head">
+      <h2>⚠️ Reportar Equipo Dañado</h2>
+      <button class="modal-close" onclick="closeModal('modal-falla')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-sec-title">📋 Información de la Falla</div>
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="fg">
+          <label>Equipo Afectado *</label>
+          <select id="falla-equipo">
+            <option value="">— Selecciona el equipo —</option>
+          </select>
+          <span class="field-hint">Selecciona el equipo que presenta la falla o daño.</span>
+        </div>
+        <div class="fg">
+          <label>Fecha de la Falla *</label>
+          <input type="date" id="falla-fecha">
+          <span class="field-hint">Fecha en que se detectó o ocurrió la falla.</span>
+        </div>
+        <div class="fg">
+          <label>Nivel de Urgencia *</label>
+          <select id="falla-urgencia">
+            <option value="alta">🔴 Alta — Equipo fuera de servicio / riesgo</option>
+            <option value="media" selected>🟡 Media — Opera con limitaciones</option>
+            <option value="baja">🟢 Baja — Falla menor, puede esperar</option>
+          </select>
+          <span class="field-hint"><strong>Alta:</strong> detener operación inmediata · <strong>Media:</strong> intervenir en 24–48h · <strong>Baja:</strong> programar revisión.</span>
+        </div>
+        <div class="fg">
+          <label>Área / Planta</label>
+          <input type="text" id="falla-area" placeholder="Ej: Planta 2 — Área de Bombeo">
+          <span class="field-hint">Ubicación específica donde ocurrió la falla.</span>
+        </div>
+        <div class="fg form-full">
+          <label>Descripción de la Falla *</label>
+          <textarea id="falla-desc" rows="4" placeholder="Describe detalladamente qué ocurrió, qué síntomas presenta el equipo, ruidos, vibraciones, humo, etc."></textarea>
+          <span class="field-hint">Sé lo más específico posible. Esta información será visible para el administrador y técnicos.</span>
+        </div>
+      </div>
+
+      <div class="form-sec-title">📷 Evidencia (Fotos / Documentos)</div>
+      <div style="background:var(--bg);border:2px dashed var(--border2);border-radius:var(--r);padding:16px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:8px"
+           onclick="document.getElementById('falla-evidencia-input').click()"
+           ondragover="event.preventDefault();this.style.borderColor='var(--red)'"
+           ondragleave="this.style.borderColor='var(--border2)'"
+           ondrop="handleFallaEvidenciaDrop(event)">
+        <input type="file" id="falla-evidencia-input" multiple accept="image/*,.pdf,.mp4,.mov" style="display:none" onchange="handleFallaEvidencia(event)">
+        <div style="font-size:1.5rem;margin-bottom:5px">📷</div>
+        <div style="font-size:.84rem;font-weight:600;color:var(--text)">Fotos, videos o documentos del daño</div>
+        <div style="font-size:.72rem;color:var(--text3);margin-top:3px">JPG, PNG, PDF, MP4 · Máx. 10 archivos</div>
+      </div>
+      <div id="falla-evidencia-preview" class="falla-img-preview"></div>
+      <div id="falla-docs-lista" style="margin-top:6px"></div>
+
+      <div class="form-sec-title" style="margin-top:14px">👤 Reportado Por</div>
+      <div style="background:var(--s3);border:1px solid var(--border);border-radius:var(--r);padding:10px 13px;display:flex;align-items:center;gap:10px">
+        <div id="falla-reportante-avatar" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),var(--red));display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0">?</div>
+        <div>
+          <div id="falla-reportante-nombre" style="font-weight:700;font-size:.88rem">—</div>
+          <div id="falla-reportante-rol" style="font-size:.73rem;color:var(--text3)">—</div>
+        </div>
+        <div style="margin-left:auto;font-size:.72rem;color:var(--text3)">Automático al guardar</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-falla')">Cancelar</button>
+      <button class="btn btn-danger" onclick="guardarFalla()">⚠️ Enviar Reporte de Falla</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER FALLA -->
+<div class="overlay" id="modal-ver-falla">
+  <div class="modal" style="width:min(560px,96vw)">
+    <div class="modal-head">
+      <h2 id="ver-falla-titulo">Detalle de Falla</h2>
+      <button class="modal-close" onclick="closeModal('modal-ver-falla')">✕</button>
+    </div>
+    <div class="modal-body" id="ver-falla-body"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-ver-falla')">Cerrar</button>
+      <button class="btn btn-warn btn-sm" id="btn-en-proceso" style="display:none">🔧 Pasar a En Proceso</button>
+      <button class="btn btn-success btn-sm" id="btn-marcar-atendida" style="display:none">✅ Marcar Resuelta</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script src="data.js"></script>
+<script src="calculos.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

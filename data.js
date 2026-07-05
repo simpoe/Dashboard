@@ -1,4 +1,4 @@
-﻿// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
 //  SISTEMA DE USUARIOS Y ROLES
 // ══════════════════════════════════════════════
 const USERS_KEY = 'simpoe_v3_users';
@@ -432,4 +432,108 @@ function exportarActivosCSV() {
   link.href=url; link.download=`SIMPOE_Activos_${new Date().toISOString().slice(0,10)}.csv`; link.click();
   URL.revokeObjectURL(url);
   toast('📥 Exportado',`${activosEmpresariales.length} activos exportados`,'green');
+}
+
+// ══════════════════════════════════════════════
+//  AUTENTICACIÓN — Supabase + fallback local
+// ══════════════════════════════════════════════
+
+/**
+ * Intenta autenticar con Supabase. Si no está disponible,
+ * valida contra la lista local de usuarios (DEFAULT_USERS).
+ * Establece currentUser y empresaActual al éxito.
+ * Lanza un Error si las credenciales son incorrectas.
+ */
+async function loginWithSupabase(email, pass) {
+  // ── 1. Intentar con Supabase ──────────────────────────────
+  try {
+    if (window.sb) {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+      if (!error && data?.user) {
+        const meta = data.user.user_metadata || {};
+        const empresaId = meta.empresa_id ?? null;
+        currentUser = {
+          id:        data.user.id,
+          email:     data.user.email,
+          nombre:    meta.nombre || data.user.email.split('@')[0],
+          role:      meta.role   || 'operador',
+          empresaId: empresaId,
+        };
+        empresaActual = empresaId ? (empresas.find(e => e.id === empresaId) || null) : null;
+        cargarDatos();
+        return;
+      }
+      // Supabase devolvió error de credenciales explícito → no hacer fallback
+      if (error && (
+        error.message?.toLowerCase().includes('invalid') ||
+        error.message?.toLowerCase().includes('credentials') ||
+        error.message?.toLowerCase().includes('password')
+      )) {
+        throw new Error('Credenciales incorrectas');
+      }
+    }
+  } catch (supabaseErr) {
+    if (supabaseErr.message === 'Credenciales incorrectas') throw supabaseErr;
+    // Red caída o Supabase no configurado → fallback local
+    console.warn('SIMPOE: Supabase no disponible, usando login local.', supabaseErr.message);
+  }
+
+  // ── 2. Fallback: autenticación local ─────────────────────
+  const found = usuarios.find(
+    u => u.email.toLowerCase() === email.toLowerCase() && u.pass === pass
+  );
+  if (!found) throw new Error('Credenciales incorrectas');
+
+  currentUser = {
+    id:        found.id,
+    email:     found.email,
+    nombre:    found.nombre,
+    role:      found.role,
+    empresaId: found.empresaId ?? null,
+  };
+  empresaActual = found.empresaId ? (empresas.find(e => e.id === found.empresaId) || null) : null;
+  cargarDatos();
+}
+
+/**
+ * Cierra la sesión de Supabase (si existe) y limpia currentUser.
+ */
+async function logoutFromSupabase() {
+  try {
+    if (window.sb) await sb.auth.signOut();
+  } catch (e) {
+    console.warn('SIMPOE: Error cerrando sesión en Supabase.', e);
+  }
+  currentUser   = null;
+  empresaActual = null;
+}
+
+/**
+ * Comprueba si ya hay una sesión activa en Supabase.
+ * Si la hay, restaura currentUser y retorna true.
+ */
+async function initSession() {
+  try {
+    if (window.sb) {
+      const { data } = await sb.auth.getSession();
+      if (data?.session?.user) {
+        const u    = data.session.user;
+        const meta = u.user_metadata || {};
+        const empresaId = meta.empresa_id ?? null;
+        currentUser = {
+          id:        u.id,
+          email:     u.email,
+          nombre:    meta.nombre || u.email.split('@')[0],
+          role:      meta.role   || 'operador',
+          empresaId: empresaId,
+        };
+        empresaActual = empresaId ? (empresas.find(e => e.id === empresaId) || null) : null;
+        cargarDatos();
+        return true;
+      }
+    }
+  } catch (e) {
+    console.warn('SIMPOE: No se pudo verificar sesión de Supabase.', e);
+  }
+  return false;
 }

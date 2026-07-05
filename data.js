@@ -15,24 +15,19 @@ const DEFAULT_EMPRESAS = [
 // ══ USUARIOS POR DEFECTO ══
 const DEFAULT_USERS = [
   { id:1,  email:'admin@simmp.co',         pass:'admin123', nombre:'Super Administrador', role:'superadmin', initials:'SA', empresaId:null, creadoPor:'Sistema',       creadoEn:'2025-01-01' },
-  // Transporte
   { id:2,  email:'admin@transcaribe.co',   pass:'admin123', nombre:'Jorge Ramírez',   role:'admin',    initials:'JR', empresaId:1, creadoPor:'Super Admin',     creadoEn:'2025-01-01' },
   { id:3,  email:'tecnico@transcaribe.co', pass:'tec456',   nombre:'Pedro Martínez',  role:'tecnico',  initials:'PM', empresaId:1, creadoPor:'Jorge Ramírez',   creadoEn:'2025-01-02' },
   { id:4,  email:'operador@transcaribe.co',pass:'op789',    nombre:'Luisa Cantillo',  role:'operador', initials:'LC', empresaId:1, creadoPor:'Jorge Ramírez',   creadoEn:'2025-01-03' },
-  // Industrial
   { id:5,  email:'admin@orozco.co',        pass:'admin123', nombre:'Marta Solano',    role:'admin',    initials:'MS', empresaId:2, creadoPor:'Super Admin',     creadoEn:'2025-01-02' },
   { id:6,  email:'tecnico@orozco.co',      pass:'tec456',   nombre:'Andrés López',    role:'tecnico',  initials:'AL', empresaId:2, creadoPor:'Marta Solano',    creadoEn:'2025-01-03' },
   { id:7,  email:'operador@orozco.co',     pass:'op789',    nombre:'Diego Vargas',    role:'operador', initials:'DV', empresaId:2, creadoPor:'Marta Solano',    creadoEn:'2025-01-04' },
-  // Construcción
   { id:8,  email:'admin@caribesas.co',     pass:'admin123', nombre:'Andrés Pérez',    role:'admin',    initials:'AP', empresaId:3, creadoPor:'Super Admin',     creadoEn:'2025-01-03' },
   { id:9,  email:'tecnico@caribesas.co',   pass:'tec456',   nombre:'Luis Moreno',     role:'tecnico',  initials:'LM', empresaId:3, creadoPor:'Andrés Pérez',    creadoEn:'2025-01-04' },
   { id:10, email:'operador@caribesas.co',  pass:'op789',    nombre:'Carlos Builes',   role:'operador', initials:'CB', empresaId:3, creadoPor:'Andrés Pérez',    creadoEn:'2025-01-05' },
-  // Activos
   { id:11, email:'admin@activosatl.co',    pass:'admin123', nombre:'Diana Cortés',    role:'admin',    initials:'DC', empresaId:4, creadoPor:'Super Admin',     creadoEn:'2025-01-04' },
   { id:12, email:'tecnico@activosatl.co',  pass:'tec456',   nombre:'Ricardo Núñez',   role:'tecnico',  initials:'RN', empresaId:4, creadoPor:'Diana Cortés',    creadoEn:'2025-01-05' },
 ];
 
-// Carga usuarios desde localStorage o usa los por defecto
 function cargarEmpresasYUsuarios() {
   try {
     const raw = localStorage.getItem(USERS_KEY);
@@ -51,14 +46,16 @@ function cargarEmpresasYUsuarios() {
     usuarios: JSON.parse(JSON.stringify(DEFAULT_USERS))
   };
 }
-// alias legacy
+
 function cargarUsuarios() { return cargarEmpresasYUsuarios().usuarios; }
 
 function guardarUsuarios() {
   try { localStorage.setItem(USERS_KEY, JSON.stringify({ empresas, usuarios })); } catch(e) {}
 }
 
-const _loaded = cargarEmpresasYUsuarios();
+// ── Inicializamos los datos desde localStorage ──
+// (se sobreescribe si hay sesión de Supabase activa)
+let _loaded = cargarEmpresasYUsuarios();
 let empresas    = _loaded.empresas;
 let usuarios    = _loaded.usuarios;
 let nextUserId    = Math.max(...usuarios.map(u=>u.id), 0) + 1;
@@ -90,7 +87,6 @@ let chTipos=null, chIAHist=null;
 
 const FACTOR_CORR = 3.2;
 function getEmpresaKey() {
-  // Each company gets its own data slot
   const eid = empresaActual ? empresaActual.id : 'global';
   return STORAGE_KEY + '_emp_' + eid;
 }
@@ -99,7 +95,6 @@ function guardarDatos() {
   try {
     const key = getEmpresaKey();
     localStorage.setItem(key, JSON.stringify({ equipos, mantenimientos, fallas, nextEqId, nextMantId, nextFallaId }));
-    // Flash "Guardado" indicator
     const ind = document.getElementById('tb-saved');
     if(ind) {
       ind.style.display = 'flex';
@@ -129,10 +124,8 @@ function cargarDatos() {
   return false;
 }
 
-// Genera datos demo realistas según el tipo de empresa activa
 function seedDemoDataForEmpresa() {
   const tipo = getTipoEmpresa();
-
   if (tipo === 'transporte') {
     equipos = [
       { id:1, nombre:'Bus Urbano #101', tipo:'Bus / Vehículo', serie:'9BWZZZ377VT001101',
@@ -178,9 +171,7 @@ function seedDemoDataForEmpresa() {
       { id:6, equipoId:4, equipoNombre:'Volqueta Carga #310', fecha:'2026-01-08', tipo:'Preventivo', desc:'Mantenimiento 385.000 km, cambio de filtros y aceite hidráulico', tecnico:'Pedro Martínez', costo:450000 },
     ];
     nextEqId = 5; nextMantId = 7;
-  }
-
-  else if (tipo === 'industrial') {
+  } else if (tipo === 'industrial') {
     equipos = [
       { id:1, nombre:'Compresor Industrial CI-01', tipo:'Compresor', serie:'CMP-2019-0451',
         horasRec:2000, horasDia:16, factor:1.2, horasAcum:1680, ubicacion:'Planta A - Línea 1',
@@ -222,9 +213,7 @@ function seedDemoDataForEmpresa() {
       { id:8, equipoId:3, equipoNombre:'Bomba Centrífuga BC-02', fecha:'2026-05-01', tipo:'Predictivo', desc:'Análisis de vibración programado — seguimiento de tendencia', tecnico:'Andrés López', costo:95000 },
     ];
     nextEqId = 5; nextMantId = 9;
-  }
-
-  else if (tipo === 'construccion') {
+  } else if (tipo === 'construccion') {
     equipos = [
       { id:1, nombre:'Excavadora CAT 320', tipo:'Maquinaria Pesada', serie:'CAT0320DKMHF03291',
         horasRec:3000, horasDia:10, factor:1.3, horasAcum:2340, ubicacion:'Obra Torre Brisas',
@@ -281,6 +270,7 @@ function seedDemoDataForEmpresa() {
   });
   guardarDatos();
 }
+
 let activosEmpresariales = [];
 let nextActivoId = 1;
 let activoEditandoId = null;
@@ -305,7 +295,6 @@ function cargarActivos() {
       if (activosEmpresariales.length > 0) return true;
     }
   } catch(e){}
-  // Seed demo data si la empresa es tipo "activos" y no hay datos guardados
   if (getTipoEmpresa() === 'activos') {
     seedDemoActivos();
     return true;
@@ -314,7 +303,6 @@ function cargarActivos() {
   return false;
 }
 
-// Genera inventario demo realista para empresas tipo Gestión de Activos
 function seedDemoActivos() {
   const hoy = new Date().toISOString().slice(0,10);
   activosEmpresariales = [
@@ -377,8 +365,10 @@ function seedDemoActivos() {
   nextActivoId = 11;
   guardarActivos();
 }
+
 let fallas = [];
 let nextFallaId = 1;
+
 function exportarCSV(data, columns, filename) {
   const header = columns.map(c=>c.label).join(',');
   const rows   = data.map(row =>
@@ -395,52 +385,38 @@ function exportarCSV(data, columns, filename) {
   URL.revokeObjectURL(url);
   toast('📥 Exportado', `${filename} descargado`, 'green');
 }
+
 function exportarHistorial() {
   exportarCSV(mantenimientos, [
-    {key:'id',           label:'ID'},
-    {key:'equipoNombre', label:'Equipo'},
-    {key:'tipo',         label:'Tipo'},
-    {key:'fecha',        label:'Fecha'},
-    {key:'tecnico',      label:'Técnico'},
-    {key:'costo',        label:'Costo COP'},
-    {key:'desc',         label:'Descripción'},
+    {key:'id',label:'ID'},{key:'equipoNombre',label:'Equipo'},{key:'tipo',label:'Tipo'},
+    {key:'fecha',label:'Fecha'},{key:'tecnico',label:'Técnico'},{key:'costo',label:'Costo COP'},
+    {key:'desc',label:'Descripción'},
   ], `SIMPOE_historial_${new Date().toISOString().slice(0,10)}.csv`);
 }
+
 function exportarFallas() {
   exportarCSV(fallas, [
-    {key:'id',            label:'ID'},
-    {key:'equipoNombre',  label:'Equipo'},
-    {key:'fecha',         label:'Fecha'},
-    {key:'urgencia',      label:'Urgencia'},
-    {key:'estado',        label:'Estado'},
-    {key:'area',          label:'Área'},
-    {key:'reportadoPor',  label:'Reportado por'},
-    {key:'desc',          label:'Descripción'},
+    {key:'id',label:'ID'},{key:'equipoNombre',label:'Equipo'},{key:'fecha',label:'Fecha'},
+    {key:'urgencia',label:'Urgencia'},{key:'estado',label:'Estado'},{key:'area',label:'Área'},
+    {key:'reportadoPor',label:'Reportado por'},{key:'desc',label:'Descripción'},
   ], `SIMPOE_fallas_${new Date().toISOString().slice(0,10)}.csv`);
 }
+
 function exportarEquipos() {
   const data = equipos.map(eq => {
     const c = calcEquipo(eq);
     return {...eq, saludPct: c.saludPct, diasMantenimiento: c.diasMantenimiento, estado: c.estado};
   });
   exportarCSV(data, [
-    {key:'codigo',            label:'Código'},
-    {key:'nombre',            label:'Nombre'},
-    {key:'tipo',              label:'Tipo'},
-    {key:'fabricante',        label:'Fabricante'},
-    {key:'modelo',            label:'Modelo'},
-    {key:'serie',             label:'N° Serie'},
-    {key:'ubicacion',         label:'Ubicación'},
-    {key:'criticidad',        label:'Criticidad'},
-    {key:'horasRec',          label:'Hrs Rec.'},
-    {key:'horasDia',          label:'Hrs/Día'},
-    {key:'factor',            label:'Factor'},
-    {key:'horasAcum',         label:'Hrs Acum.'},
-    {key:'saludPct',          label:'Salud %'},
-    {key:'diasMantenimiento', label:'Días p/Mant.'},
-    {key:'estado',            label:'Estado'},
+    {key:'codigo',label:'Código'},{key:'nombre',label:'Nombre'},{key:'tipo',label:'Tipo'},
+    {key:'fabricante',label:'Fabricante'},{key:'modelo',label:'Modelo'},{key:'serie',label:'N° Serie'},
+    {key:'ubicacion',label:'Ubicación'},{key:'criticidad',label:'Criticidad'},
+    {key:'horasRec',label:'Hrs Rec.'},{key:'horasDia',label:'Hrs/Día'},{key:'factor',label:'Factor'},
+    {key:'horasAcum',label:'Hrs Acum.'},{key:'saludPct',label:'Salud %'},
+    {key:'diasMantenimiento',label:'Días p/Mant.'},{key:'estado',label:'Estado'},
   ], `SIMPOE_equipos_${new Date().toISOString().slice(0,10)}.csv`);
 }
+
 function exportarActivosCSV() {
   const headers = ['Código','Nombre','Categoría','Marca','Modelo','Serial','Estado','Sede','Área','Oficina',
                    'Responsable','Fecha Compra','Garantía','Proveedor','Costo COP','Movimientos','Observaciones'];

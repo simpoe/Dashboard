@@ -16,7 +16,7 @@ function quickLogin(email, pass) {
   doLogin();
 }
 
-function doLogin() {
+async function doLogin() {
   const email = (document.getElementById('li-email').value || '').trim().toLowerCase();
   const pass  = (document.getElementById('li-pass').value  || '').trim();
   const errEl = document.getElementById('login-error');
@@ -27,9 +27,15 @@ function doLogin() {
     return;
   }
 
-  const user = usuarios.find(u => u.email.toLowerCase() === email && u.pass === pass);
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Ingresando...';
 
-  if (!user) {
+  try {
+    await loginWithSupabase(email, pass);
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = 'Ingresar';
     errEl.textContent = '❌ Correo o contraseña incorrectos.';
     errEl.style.display = 'block';
     errEl.style.animation = 'none';
@@ -39,20 +45,18 @@ function doLogin() {
     return;
   }
 
+  btn.disabled = false;
+  btn.textContent = 'Ingresar';
   errEl.style.display = 'none';
-  currentUser = user;
-  // Set empresa context
-  empresaActual = user.empresaId ? empresas.find(e=>e.id===user.empresaId) || null : null;
+  const user = currentUser;
 
   // Generar iniciales dinámicas
   const initials = user.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('tb-avatar').textContent = initials;
-  // Admin gets purple avatar, tecnico gets blue/cyan
   document.getElementById('tb-avatar').style.background = user.role === 'admin'
     ? 'linear-gradient(135deg,#e87820,#e87820)'
     : 'linear-gradient(135deg,var(--blue),var(--cyan))';
   document.getElementById('tb-name').textContent = user.nombre;
-  // Update role badge with correct labels
   const roleBadge = document.getElementById('tb-role-badge');
   if (roleBadge) {
     const rl = {superadmin:'🌐 Super Admin', admin:'👑 Admin', tecnico:'🔧 Técnico', operador:'⚠️ Operador'};
@@ -60,7 +64,6 @@ function doLogin() {
     roleBadge.style.color = user.role==='superadmin'?'var(--purple2)': user.role==='admin'?'var(--purple2)':'var(--green2)';
   }
 
-  // Update topbar company badge
   const empBadge = document.getElementById('tb-empresa');
   if (empBadge) {
     if (user.role === 'superadmin') {
@@ -72,15 +75,12 @@ function doLogin() {
     }
   }
 
-  // Mostrar/ocultar secciones según rol
   aplicarRol(user.role);
 
   const ls = document.getElementById('login-screen');
   ls.style.opacity = '0';
   setTimeout(() => {
     ls.style.display = 'none';
-    cargarDatos(); // Load this company's specific data
-    cargarActivos(); // Load activos for this company
     renderDashboard();
     updateBadges();
     const rolLabel = {superadmin:'🌐 Super Admin', admin:'👑 Admin', tecnico:'🔧 Técnico', operador:'⚠️ Operador'};
@@ -89,10 +89,8 @@ function doLogin() {
   }, 400);
 }
 
-function doLogout() {
-  currentUser = null;
-  empresaActual = null;
-  // Reset data to defaults so next user starts fresh
+async function doLogout() {
+  await logoutFromSupabase();
   equipos = []; mantenimientos = []; fallas = []; activosEmpresariales = [];
   nextEqId = 1; nextMantId = 1; nextFallaId = 1;
   const empBadge = document.getElementById('tb-empresa');
@@ -100,13 +98,11 @@ function doLogout() {
   document.getElementById('li-email').value = '';
   document.getElementById('li-pass').value  = '';
   document.getElementById('login-error').style.display = 'none';
-  // Reset topbar
   document.getElementById('tb-avatar').textContent = '?';
   document.getElementById('tb-avatar').style.background = 'linear-gradient(135deg,var(--blue),var(--cyan))';
   document.getElementById('tb-name').textContent = '—';
   const rb = document.getElementById('tb-role-badge');
   if (rb) rb.textContent = '';
-  // Reset nav al estado por defecto
   aplicarRol(null);
   const ls = document.getElementById('login-screen');
   ls.style.opacity = '0';
@@ -181,6 +177,45 @@ function goViewSeguro(view, el) {
 document.getElementById('login-btn').addEventListener('click', doLogin);
 document.getElementById('li-email').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('li-pass').focus(); });
 document.getElementById('li-pass').addEventListener('keydown',  e => { if(e.key==='Enter') doLogin(); });
+
+// ── Auto-login si hay sesión activa en Supabase ──
+(async function initApp() {
+  try {
+    const hasSession = await initSession();
+    if (hasSession && currentUser) {
+      const user = currentUser;
+      const initials = user.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      document.getElementById('tb-avatar').textContent = initials;
+      document.getElementById('tb-avatar').style.background = user.role === 'admin'
+        ? 'linear-gradient(135deg,#e87820,#e87820)'
+        : 'linear-gradient(135deg,var(--blue),var(--cyan))';
+      document.getElementById('tb-name').textContent = user.nombre;
+      const roleBadge = document.getElementById('tb-role-badge');
+      if (roleBadge) {
+        const rl = {superadmin:'🌐 Super Admin', admin:'👑 Admin', tecnico:'🔧 Técnico', operador:'⚠️ Operador'};
+        roleBadge.textContent = rl[user.role] || user.role;
+        roleBadge.style.color = user.role==='superadmin'?'var(--purple2)': user.role==='admin'?'var(--purple2)':'var(--green2)';
+      }
+      const empBadge = document.getElementById('tb-empresa');
+      if (empBadge) {
+        if (user.role === 'superadmin') {
+          empBadge.textContent = '🌐 Todas las empresas';
+          empBadge.style.color = 'var(--purple2)';
+        } else if (empresaActual) {
+          empBadge.textContent = '🏢 ' + empresaActual.nombre;
+          empBadge.style.color = empresaActual.color || 'var(--blue2)';
+        }
+      }
+      aplicarRol(user.role);
+      const ls = document.getElementById('login-screen');
+      ls.style.display = 'none';
+      renderDashboard();
+      updateBadges();
+    }
+  } catch (e) {
+    console.warn('Init session check:', e);
+  }
+})();
 
 // ══════════════════════════════════════════════
 //  CÁLCULO CORE — Con fórmula correcta
@@ -341,10 +376,9 @@ function renderEmpresas() {
   }).join('');
 }
 
-function crearEmpresa() {
+async function crearEmpresa() {
   if (!currentUser || currentUser.role !== 'superadmin') return;
 
-  // ── Datos empresa ──────────────────────────────────────────
   const nombre       = document.getElementById('ne-nombre').value.trim();
   const nit          = document.getElementById('ne-nit').value.trim();
   const responsable  = document.getElementById('ne-responsable').value.trim();
@@ -356,7 +390,6 @@ function crearEmpresa() {
   const logo         = document.getElementById('ne-logo').value.trim().toUpperCase();
   const tipo         = document.getElementById('ne-tipo-empresa').value || 'industrial';
 
-  // ── Datos administrador ────────────────────────────────────
   const adminNombre  = document.getElementById('ne-admin-nombre').value.trim();
   const adminEmail   = document.getElementById('ne-admin-email').value.trim().toLowerCase();
   const adminPass    = document.getElementById('ne-admin-pass').value;
@@ -366,69 +399,60 @@ function crearEmpresa() {
   const error = msg => { errEl.textContent = msg; errEl.style.display = 'block'; };
   errEl.style.display = 'none';
 
-  // ── Validaciones empresa ───────────────────────────────────
   if (!nombre)      return error('⚠️ Ingresa el nombre de la empresa.');
   if (!nit)         return error('⚠️ Ingresa el NIT de la empresa.');
   if (!responsable) return error('⚠️ Ingresa el nombre del responsable.');
   if (!ciudad)      return error('⚠️ Ingresa la ciudad.');
-  if (!tipo)        return error('⚠️ Selecciona el tipo de empresa (Transporte, Industrial o Construcción).');
+  if (!tipo)        return error('⚠️ Selecciona el tipo de empresa.');
   if (empresas.find(e => e.nit === nit))
                     return error('⚠️ Ya existe una empresa con ese NIT.');
-
-  // ── Validaciones administrador ─────────────────────────────
   if (!adminNombre)                       return error('⚠️ Ingresa el nombre del administrador.');
   if (!adminEmail || !adminEmail.includes('@'))
                                           return error('⚠️ Ingresa un correo válido para el administrador.');
   if (usuarios.find(u => u.email === adminEmail))
-                                          return error('⚠️ Ya existe un usuario con ese correo de administrador.');
+                                          return error('⚠️ Ya existe un usuario con ese correo.');
   if (!adminPass || adminPass.length < 4) return error('⚠️ La contraseña debe tener al menos 4 caracteres.');
   if (adminPass !== adminPass2)           return error('⚠️ Las contraseñas no coinciden.');
 
-  // ── Crear empresa ──────────────────────────────────────────
+  // Crear auth user en Supabase
+  try {
+    const { data: authData, error: authErr } = await sb.auth.signUp({
+      email: adminEmail, password: adminPass,
+      options: { data: { nombre: adminNombre, role: 'admin' } }
+    });
+    if (authErr) return error('⚠️ Error al crear usuario en Supabase: ' + authErr.message);
+  } catch (e) {
+    return error('⚠️ Error de conexión con Supabase. Verifica que el proyecto esté activo.');
+  }
+
   const newEmpresaId = nextEmpresaId++;
   empresas.push({
-    id:         newEmpresaId,
-    nombre, nit, responsable, ciudad, pais,
-    tipo,       // 'transporte' | 'industrial' | 'construccion'
-    telefono:   tel,
-    email:      emailEmp,
-    color,
-    logoText:   logo || nombre.slice(0, 2).toUpperCase(),
-    creadaEn:   new Date().toISOString().slice(0, 10),
-    activa:     true,
+    id: newEmpresaId, nombre, nit, responsable, ciudad, pais,
+    tipo, telefono: tel, email: emailEmp, color,
+    logoText: logo || nombre.slice(0, 2).toUpperCase(),
+    creadaEn: new Date().toISOString().slice(0, 10), activa: true,
   });
 
-  // ── Crear administrador automáticamente ────────────────────
   const newAdmin = {
-    id:        nextUserId++,
-    email:     adminEmail,
-    pass:      adminPass,
-    nombre:    adminNombre,
-    role:      'admin',
-    initials:  adminNombre.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
-    empresaId: newEmpresaId,
-    creadoPor: currentUser.nombre,
-    creadoEn:  new Date().toISOString().slice(0, 10),
+    id: nextUserId++, email: adminEmail, pass: adminPass,
+    nombre: adminNombre, role: 'admin',
+    initials: adminNombre.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
+    empresaId: newEmpresaId, creadoPor: currentUser.nombre,
+    creadoEn: new Date().toISOString().slice(0, 10),
   };
   usuarios.push(newAdmin);
 
-  // ── Guardar y limpiar ──────────────────────────────────────
   guardarUsuarios();
   closeModal('modal-nueva-empresa');
   renderEmpresas();
   updateBadges();
 
-  // Limpiar todos los campos del modal
   ['ne-nombre','ne-nit','ne-responsable','ne-ciudad','ne-telefono','ne-email','ne-logo',
    'ne-admin-nombre','ne-admin-email','ne-admin-pass','ne-admin-pass2']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('ne-color').value = '#e87820';
 
-  toast(
-    '✅ Empresa y Admin Creados',
-    `${nombre} · Admin: ${adminEmail} / ${adminPass}`,
-    'green'
-  );
+  toast('✅ Empresa y Admin Creados', `${nombre} · Admin: ${adminEmail}`, 'green');
 }
 
 function verEmpresa(id) {
@@ -454,7 +478,7 @@ function verEmpresa(id) {
         <div style="width:28px;height:28px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:var(--text2)">${u.initials||u.nombre.slice(0,2).toUpperCase()}</div>
         <div style="flex:1">
           <div style="font-size:.84rem;font-weight:600">${u.nombre}</div>
-          <div style="font-size:.72rem;color:var(--text3)">${u.email} · <span style="font-family:var(--mono)">${u.pass}</span></div>
+          <div style="font-size:.72rem;color:var(--text3)">${u.email}</div>
         </div>
         <span class="badge ${u.role==='admin'?'b-info':'b-ok'}" style="font-size:.68rem">${u.role==='admin'?'👑 Admin':u.role==='tecnico'?'🔧 Técnico':'⚠️ Operador'}</span>
       </div>`).join('') : '<div style="font-size:.81rem;color:var(--text3);text-align:center;padding:10px">Sin usuarios asignados aún.</div>'}`;
@@ -646,7 +670,7 @@ function renderUsuarios() {
     : `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text3)">No se encontraron usuarios</td></tr>`;
 }
 
-function crearUsuario() {
+async function crearUsuario() {
   if (!currentUser || !['admin','superadmin'].includes(currentUser.role)) return;
 
   const nombre    = document.getElementById('nu-nombre').value.trim();
@@ -668,30 +692,48 @@ function crearUsuario() {
   if (usuarios.find(u=>u.email===email)) return mostrarError('⚠️ Ya existe un usuario con ese correo.');
   if (!empresaId && role !== 'superadmin') return mostrarError('⚠️ Selecciona la empresa del usuario.');
 
-  const empNombre = empresaId ? (empresas.find(e=>e.id===empresaId)?.nombre||'—') : 'Global';
-  const nuevoUsuario = {
-    id:        nextUserId++,
-    email, pass, nombre, role,
-    empresaId: empresaId || null,
-    initials:  nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
-    creadoPor: currentUser.nombre,
-    creadoEn:  new Date().toISOString().slice(0,10),
-  };
+  const btn = document.getElementById('modal-nuevo-usuario')?.querySelector('.btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Creando...'; }
 
-  usuarios.push(nuevoUsuario);
-  guardarUsuarios();
-  updateBadges();
+  try {
+    // Crear usuario en Supabase Auth
+    const { data: authData, error: authError } = await sb.auth.signUp({
+      email, password: pass,
+      options: { data: { nombre, role, empresa_id: empresaId } }
+    });
+    if (authError) throw new Error(authError.message);
 
-  ['nu-nombre','nu-email','nu-pass','nu-pass2'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.value='';
-  });
-  document.getElementById('nu-role').value = 'tecnico';
-  errEl.style.display = 'none';
+    // Insertar o actualizar registro en usuarios
+    const { data: newUser, error: insertError } = await sb.from('usuarios').upsert({
+      auth_id: authData.user.id,
+      email, nombre, role,
+      empresa_id: empresaId || null,
+      creado_por: currentUser.nombre,
+    }).select().single();
+    if (insertError) throw new Error(insertError.message);
 
-  closeModal('modal-nuevo-usuario');
-  renderUsuarios();
-  const rl = {admin:'👑 Admin', tecnico:'🔧 Técnico', operador:'⚠️ Operador'};
-  toast('✅ Usuario Creado', `${nombre} · ${rl[role]||role} · ${empNombre}`, 'green');
+    // Añadir al array local
+    const idx = usuarios.findIndex(u => u.email === email);
+    if (idx >= 0) usuarios[idx] = newUser;
+    else usuarios.push(newUser);
+    recalcCounters();
+    updateBadges();
+
+    ['nu-nombre','nu-email','nu-pass','nu-pass2'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    document.getElementById('nu-role').value = 'tecnico';
+    errEl.style.display = 'none';
+    closeModal('modal-nuevo-usuario');
+    renderUsuarios();
+    const rl = {admin:'👑 Admin', tecnico:'🔧 Técnico', operador:'⚠️ Operador'};
+    const empNombre = empresaId ? (empresas.find(e => e.id === empresaId)?.nombre || '—') : 'Global';
+    toast('✅ Usuario Creado', `${nombre} · ${rl[role]||role} · ${empNombre}`, 'green');
+  } catch (e) {
+    mostrarError('⚠️ ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '✔ Crear Usuario'; }
+  }
 }
 
 function verUsuario(id) {
@@ -723,14 +765,8 @@ function verUsuario(id) {
     <div class="kv-row"><span class="kv-key">Estado</span><span class="badge b-ok"><span class="badge-dot"></span>Activo</span></div>
     ${currentUser?.role==='superadmin' ? `
     <div class="kv-row">
-      <span class="kv-key">🔑 Contraseña actual</span>
-      <span class="kv-val" style="font-family:var(--mono);display:flex;align-items:center;gap:8px">
-        <span id="pass-display-${u.id}" style="letter-spacing:.15em">••••••••</span>
-        <button onclick="document.getElementById('pass-display-${u.id}').textContent=document.getElementById('pass-display-${u.id}').textContent==='${u.pass}'?'••••••••':'${u.pass}'"
-          style="font-size:.7rem;background:none;border:1px solid var(--border);border-radius:5px;padding:2px 6px;color:var(--text3);cursor:pointer">
-          👁 Ver
-        </button>
-      </span>
+      <span class="kv-key">🔑 Contraseña</span>
+      <span class="kv-val" style="color:var(--text3);font-size:.8rem">Gestionada por Supabase Auth — usa "Restablecer Contraseña" para enviar email de recuperación</span>
     </div>` : ''}
     <div class="divider"></div>
     <div style="background:rgba(232,120,32,.07);border:1px solid rgba(232,120,32,.15);border-radius:var(--r);padding:10px 13px;font-size:.8rem;color:var(--text2)">
@@ -760,43 +796,46 @@ function verUsuario(id) {
   openModal('modal-ver-usuario');
 }
 
-// ── Password reset (Superadmin only) ──────────────────────────────────────
-function resetPassword(id) {
+// ── Password reset (envía email de recuperación) ──
+async function resetPassword(id) {
   if (!currentUser || currentUser.role !== 'superadmin') return;
-  const u = usuarios.find(x=>x.id===id);
+  const u = usuarios.find(x => x.id === id);
   if (!u) return;
 
-  const newPass = prompt(`Restablecer contraseña de "${u.nombre}"
+  if (!confirm(`Enviar correo de restablecimiento de contraseña a "${u.nombre}" (${u.email})?`)) return;
 
-Ingresa la nueva contraseña (mínimo 4 caracteres):`, '');
-  if (newPass === null) return; // cancelled
-  if (!newPass || newPass.trim().length < 4) {
-    toast('⚠️ Error','La contraseña debe tener al menos 4 caracteres','yellow'); return;
+  try {
+    const { error } = await sb.auth.resetPasswordForEmail(u.email);
+    if (error) throw error;
+    toast('📧 Email Enviado', `Instrucciones enviadas a ${u.email}`, 'green');
+    closeModal('modal-ver-usuario');
+  } catch (e) {
+    toast('⚠️ Error', e.message, 'red');
   }
-
-  u.pass = newPass.trim();
-  guardarUsuarios();
-  toast('🔑 Contraseña Restablecida',`${u.nombre} · Nueva contraseña asignada`, 'green');
-  closeModal('modal-ver-usuario');
 }
 
-function eliminarUsuario(id) {
+async function eliminarUsuario(id) {
   if (!currentUser || !['admin','superadmin'].includes(currentUser.role)) return;
-  const u = usuarios.find(x=>x.id===id);
+  const u = usuarios.find(x => x.id === id);
   if (!u) return;
-  if (u.id === currentUser.id) { toast('⚠️ Aviso','No puedes eliminar tu propia cuenta','yellow'); return; }
-  // Proteger siempre al menos un admin
-  const adminsRestantes = usuarios.filter(x=>x.role==='admin' && x.id!==id).length;
-  if (u.role==='admin' && adminsRestantes===0) {
-    toast('⚠️ Aviso','Debe existir al menos un administrador en el sistema','yellow');
+  if (u.id === currentUser.id) { toast('⚠️ Aviso', 'No puedes eliminar tu propia cuenta', 'yellow'); return; }
+  const adminsRestantes = usuarios.filter(x => x.role === 'admin' && x.id !== id).length;
+  if (u.role === 'admin' && adminsRestantes === 0) {
+    toast('⚠️ Aviso', 'Debe existir al menos un administrador en el sistema', 'yellow');
     return;
   }
   if (!confirm(`¿Eliminar al usuario "${u.nombre}"?\nEsta acción no se puede deshacer.`)) return;
-  usuarios = usuarios.filter(x=>x.id!==id);
-  guardarUsuarios();
-  renderUsuarios();
-  updateBadges();
-  toast('🗑️ Usuario Eliminado', u.nombre, 'red');
+
+  try {
+    await sb.from('usuarios').delete().eq('id', u.id);
+    usuarios = usuarios.filter(x => x.id !== id);
+    recalcCounters();
+    renderUsuarios();
+    updateBadges();
+    toast('🗑️ Usuario Eliminado', u.nombre, 'red');
+  } catch (e) {
+    toast('⚠️ Error al eliminar', e.message, 'red');
+  }
 }
 
 // ══════════════════════════════════════════════

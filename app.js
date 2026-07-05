@@ -183,28 +183,6 @@ document.getElementById('li-email').addEventListener('keydown', e => { if(e.key=
 document.getElementById('li-pass').addEventListener('keydown',  e => { if(e.key==='Enter') doLogin(); });
 
 // ══════════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════════
-  { id:1, nombre:'Aire Acond. 1',   tipo:'Aire Acondicionado', horasRec:600,  horasDia:8,  factor:1.0, horasAcum:200, ubicacion:'Oficina Principal',     notas:'Marca: LG, Modelo BTU18' },
-  { id:2, nombre:'Motor Principal', tipo:'Motor',              horasRec:500,  horasDia:10, factor:1.2, horasAcum:450, ubicacion:'Planta de Producción',  notas:'Motor trifásico 15HP' },
-  { id:3, nombre:'Bomba Hidráulica',tipo:'Bomba',              horasRec:400,  horasDia:12, factor:1.5, horasAcum:395, ubicacion:'Área de Bombeo',        notas:'Bomba centrífuga 5HP' },
-  { id:4, nombre:'Planta Eléctrica',tipo:'Generador',          horasRec:800,  horasDia:6,  factor:0.8, horasAcum:120, ubicacion:'Subestación',           notas:'Generador emergencia 50KVA' },
-  { id:5, nombre:'Bus #12',         tipo:'Bus / Vehículo',     horasRec:1000, horasDia:14, factor:1.3, horasAcum:750, ubicacion:'Flota Urbana',          notas:'Placa: XYZ-123, Diesel' },
-];
-
-  { id:1, equipoId:1, equipoNombre:'Aire Acond. 1',    fecha:'2025-01-15', tipo:'Preventivo', desc:'Limpieza de filtros y revisión del gas refrigerante',               tecnico:'Carlos Pérez',    costo:150000 },
-  { id:2, equipoId:2, equipoNombre:'Motor Principal',  fecha:'2025-02-20', tipo:'Correctivo', desc:'Reemplazo de rodamientos desgastados por falla en operación',       tecnico:'Andrés López',   costo:320000 },
-  { id:3, equipoId:3, equipoNombre:'Bomba Hidráulica', fecha:'2025-03-10', tipo:'Preventivo', desc:'Cambio de sellos y revisión de presión hidráulica programada',      tecnico:'Juan García',    costo:95000  },
-  { id:4, equipoId:5, equipoNombre:'Bus #12',          fecha:'2025-03-22', tipo:'Correctivo', desc:'Reparación de frenos traseros por desgaste excesivo imprevisto',    tecnico:'Luis Martínez',  costo:480000 },
-  { id:5, equipoId:4, equipoNombre:'Planta Eléctrica', fecha:'2025-04-01', tipo:'Preventivo', desc:'Revisión de bornes, cables y prueba de carga al 75%',               tecnico:'Carlos Pérez',    costo:120000 },
-  { id:6, equipoId:2, equipoNombre:'Motor Principal',  fecha:'2025-04-10', tipo:'Preventivo', desc:'Lubricación general y revisión de correas de transmisión',          tecnico:'Andrés López',   costo:85000  },
-  { id:7, equipoId:1, equipoNombre:'Aire Acond. 1',    fecha:'2025-05-05', tipo:'Correctivo', desc:'Cambio de compresor por falla térmica inesperada a los 220h',       tecnico:'Técnico Externo', costo:550000 },
-  { id:8, equipoId:3, equipoNombre:'Bomba Hidráulica', fecha:'2025-06-12', tipo:'Predictivo', desc:'Análisis de vibración detectó desgaste — ajuste preventivo ejecutado',tecnico:'Juan García',   costo:70000  },
-];
-
-
-
-// ══════════════════════════════════════════════
 //  CÁLCULO CORE — Con fórmula correcta
 // ══════════════════════════════════════════════
 

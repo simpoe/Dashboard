@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="theme-color" content="#0e0b08">
+<meta name="theme-color" content="#080b0d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
@@ -12,7 +12,7 @@
 <link rel="icon" type="image/svg+xml" href="simpoe-icon.svg">
 <link rel="apple-touch-icon" href="simpoe-icon.svg">
 <title>SIMPOE — Sistema Inteligente de Mantenimiento Predictivo</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Source+Code+Pro:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="stylesheet" href="styles.css">
@@ -65,7 +65,7 @@
   <div class="topbar-spacer"></div>
   <div class="tb-status"><div class="pulse-dot"></div>Sistema activo</div>
   <div id="modulo-activo" style="font-size:.74rem;font-weight:700;color:var(--text2);background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:3px 12px;display:flex;align-items:center;gap:5px;"><i data-lucide="sliders" style="width:12px;height:12px;"></i> Centro de Control Operacional</div>
-  <div id="tb-empresa" style="font-size:.74rem;font-weight:700;color:var(--blue2);background:rgba(232,120,32,.12);border:1px solid rgba(232,120,32,.3);border-radius:20px;padding:3px 11px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+  <div id="tb-empresa" style="font-size:.74rem;font-weight:700;color:var(--blue2);background:rgba(14,165,233,.12);border:1px solid rgba(14,165,233,.3);border-radius:20px;padding:3px 11px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
   <div id="tb-saved" style="font-size:.72rem;color:var(--green2);display:none;align-items:center;gap:4px;"><i data-lucide="save" style="width:13px;height:13px;"></i> Guardado</div>
   <div class="tb-clock" id="tb-clock">--:--:--</div>
   <div class="tb-user">
@@ -203,7 +203,7 @@
       <input type="text" id="eq-search" placeholder="Escribe el nombre del equipo..."
         style="width:100%;background:var(--s2);border:1.5px solid var(--border2);border-radius:var(--r2);padding:14px 16px 14px 46px;color:var(--text);font-family:var(--font);font-size:1rem;outline:none;transition:border-color .15s,box-shadow .15s;"
         oninput="renderEquipos()"
-        onfocus="this.style.borderColor='var(--blue)';this.style.boxShadow='0 0 0 3px rgba(232,120,32,.15)'"
+        onfocus="this.style.borderColor='var(--blue)';this.style.boxShadow='0 0 0 3px rgba(14,165,233,.15)'"
         onblur="this.style.borderColor='var(--border2)';this.style.boxShadow='none'">
     </div>
     <div style="text-align:center;font-size:.78rem;color:var(--text3);margin-top:8px">
@@ -235,13 +235,13 @@
   </div>
 
   <!-- Selector prominente -->
-  <div style="background:linear-gradient(135deg,rgba(232,120,32,.1),rgba(180,80,8,.06));border:1.5px solid rgba(232,120,32,.3);border-radius:var(--r2);padding:20px 24px;margin-bottom:22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+  <div style="background:linear-gradient(135deg,rgba(14,165,233,.1),rgba(3,105,161,.08));border:1.5px solid rgba(14,165,233,.3);border-radius:var(--r2);padding:20px 24px;margin-bottom:22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
     <div style="flex-shrink:0;font-size:2.2rem">⚙️</div>
     <div style="flex:1">
       <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--blue2);margin-bottom:7px">Equipo a calcular</div>
       <select id="calc-equipo-sel" onchange="calcSeleccionar()"
-        style="width:100%;background:var(--s3);border:1.5px solid rgba(232,120,32,.3);border-radius:var(--r);padding:11px 15px;color:var(--text);font-family:var(--font);font-size:.92rem;outline:none;cursor:pointer;transition:border-color .2s"
-        onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='rgba(232,120,32,.3)'">
+        style="width:100%;background:var(--s3);border:1.5px solid rgba(14,165,233,.3);border-radius:var(--r);padding:11px 15px;color:var(--text);font-family:var(--font);font-size:.92rem;outline:none;cursor:pointer;transition:border-color .2s"
+        onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='rgba(14,165,233,.3)'">
         <option value="">— Selecciona un equipo para calcular —</option>
       </select>
     </div>
@@ -413,7 +413,7 @@
               <div style="font-weight:700;color:var(--red2);margin-bottom:2px">🔴 Correctivo</div>
               <div style="color:var(--text2)">Se realiza después de una falla. Mayor costo por mano de obra urgente, repuestos de emergencia y tiempo muerto de producción.</div>
             </div>
-            <div style="padding:9px;background:rgba(232,120,32,.06);border-radius:var(--r);border-left:3px solid var(--blue)">
+            <div style="padding:9px;background:rgba(14,165,233,.06);border-radius:var(--r);border-left:3px solid var(--blue)">
               <div style="font-weight:700;color:var(--blue2);margin-bottom:2px">🔵 Predictivo</div>
               <div style="color:var(--text2)">Basado en análisis de condición (vibración, temperatura, presión). Anticipa fallas con mayor precisión que el preventivo.</div>
             </div>
@@ -520,7 +520,7 @@
       <button class="btn btn-primary btn-sm" onclick="openModal('modal-nueva-empresa')">+ Nueva Empresa</button>
     </div>
   </div>
-  <div style="background:linear-gradient(135deg,rgba(232,120,32,.1),rgba(232,120,32,.08));border:1px solid rgba(232,120,32,.25);border-radius:var(--r2);padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
+  <div style="background:linear-gradient(135deg,rgba(14,165,233,.1),rgba(14,165,233,.08));border:1px solid rgba(14,165,233,.25);border-radius:var(--r2);padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
     <span style="font-size:1.4rem">🌐</span>
     <div>
       <div style="font-weight:700;color:var(--purple2);font-size:.9rem">Vista Global — Super Administrador</div>
@@ -544,7 +544,7 @@
   </div>
 
   <!-- Acceso restringido banner -->
-  <div style="background:linear-gradient(135deg,rgba(232,120,32,.1),rgba(232,120,32,.08));border:1px solid rgba(232,120,32,.25);border-radius:var(--r2);padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
+  <div style="background:linear-gradient(135deg,rgba(14,165,233,.1),rgba(14,165,233,.08));border:1px solid rgba(14,165,233,.25);border-radius:var(--r2);padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
     <span style="font-size:1.4rem">🔐</span>
     <div>
       <div style="font-weight:700;color:var(--purple2);font-size:.9rem">Sección Restringida — Solo Administrador</div>
@@ -766,7 +766,7 @@
       <button class="modal-close" onclick="closeModal('modal-nueva-empresa')">✕</button>
     </div>
     <div class="modal-body">
-      <div style="background:rgba(232,120,32,.08);border:1px solid rgba(232,120,32,.2);border-radius:var(--r);padding:11px 14px;margin-bottom:16px;font-size:.81rem;color:var(--blue2);">
+      <div style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2);border-radius:var(--r);padding:11px 14px;margin-bottom:16px;font-size:.81rem;color:var(--blue2);">
         🌐 <strong>Super Admin</strong> — Al crear la empresa se generará su Administrador. El <strong>tipo de empresa</strong> adapta formularios, dashboard e IA del sistema.
       </div>
       <div class="form-sec-title">🏢 Datos de la Empresa</div>
@@ -833,7 +833,7 @@
         </div>
         <div class="fg">
           <label>Color Corporativo</label>
-          <input type="color" id="ne-color" value="#e87820" style="height:38px;padding:4px;">
+          <input type="color" id="ne-color" value="#0ea5e9" style="height:38px;padding:4px;">
         </div>
         <div class="fg">
           <label>Sigla / Iniciales</label>
@@ -1018,7 +1018,7 @@
     </div>
     <div class="modal-body">
       <!-- Solo admin puede ver este modal -->
-      <div style="background:rgba(232,120,32,.08);border:1px solid rgba(232,120,32,.2);border-radius:var(--r);padding:10px 13px;margin-bottom:16px;font-size:.8rem;color:var(--purple2);">
+      <div style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2);border-radius:var(--r);padding:10px 13px;margin-bottom:16px;font-size:.8rem;color:var(--purple2);">
         🔐 Estás creando un usuario como <strong id="modal-usr-creador">Administrador</strong>. Quedará registrado como el creador de esta cuenta.
       </div>
       <div class="form-grid">

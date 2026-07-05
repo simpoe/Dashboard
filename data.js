@@ -6,10 +6,10 @@ const STORAGE_KEY = 'simpoe_v3_data';
 
 // ══ EMPRESAS POR DEFECTO ══
 const DEFAULT_EMPRESAS = [
-  { id:1, nombre:'Transportes del Caribe S.A.S',  nit:'900.111.222-1', tipo:'transporte',   responsable:'Jorge Ramírez', ciudad:'Barranquilla', pais:'Colombia', telefono:'+57 305 100 0001', email:'contacto@transcaribe.co',  color:'#e87820', logoText:'TC', creadaEn:'2025-01-01', activa:true },
+  { id:1, nombre:'Transportes del Caribe S.A.S',  nit:'900.111.222-1', tipo:'transporte',   responsable:'Jorge Ramírez', ciudad:'Barranquilla', pais:'Colombia', telefono:'+57 305 100 0001', email:'contacto@transcaribe.co',  color:'#0ea5e9', logoText:'TC', creadaEn:'2025-01-01', activa:true },
   { id:2, nombre:'Industrias Mecánicas Orozco',   nit:'900.222.333-2', tipo:'industrial',   responsable:'Marta Solano',  ciudad:'Barranquilla', pais:'Colombia', telefono:'+57 305 100 0002', email:'contacto@orozco.co',       color:'#3aaa5c', logoText:'IM', creadaEn:'2025-01-02', activa:true },
   { id:3, nombre:'Constructora Caribe S.A.S',     nit:'800.654.321-0', tipo:'construccion', responsable:'Andrés Pérez',  ciudad:'Cartagena',     pais:'Colombia', telefono:'+57 305 100 0003', email:'info@caribesas.co',        color:'#d4960c', logoText:'CC', creadaEn:'2025-01-03', activa:true },
-  { id:4, nombre:'Corporación Activos Atlántico', nit:'900.444.555-4', tipo:'activos',      responsable:'Diana Cortés',  ciudad:'Barranquilla', pais:'Colombia', telefono:'+57 305 100 0004', email:'gestion@activosatl.co',    color:'#e87820', logoText:'CA', creadaEn:'2025-01-04', activa:true },
+  { id:4, nombre:'Corporación Activos Atlántico', nit:'900.444.555-4', tipo:'activos',      responsable:'Diana Cortés',  ciudad:'Barranquilla', pais:'Colombia', telefono:'+57 305 100 0004', email:'gestion@activosatl.co',    color:'#0ea5e9', logoText:'CA', creadaEn:'2025-01-04', activa:true },
 ];
 
 // ══ USUARIOS POR DEFECTO ══

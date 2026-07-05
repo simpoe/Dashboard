@@ -1,16 +1,22 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="theme-color" content="#0e0b08">
+<meta name="theme-color" content="#080b0d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="SIMPOE">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="simpoe-icon.svg">
+<link rel="apple-touch-icon" href="simpoe-icon.svg">
 <title>SIMPOE — Sistema Inteligente de Mantenimiento Predictivo</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Source+Code+Pro:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="stylesheet" href="styles.css">
+<script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
@@ -18,7 +24,7 @@
 <div id="login-screen">
   <div class="login-card">
     <div class="login-brand">
-      <div class="login-brand-icon">⚙</div>
+      <div class="login-brand-icon"><i data-lucide="settings"></i></div>
       <div>
         <div class="login-brand-name">SIMPOE</div>
         <div class="login-brand-sub">Mantenimiento y Productividad Industrial</div>
@@ -30,14 +36,14 @@
     <div class="login-field">
       <label class="login-label">Correo electrónico</label>
       <div class="login-input-wrap">
-        <span class="login-input-icon">📧</span>
+        <span class="login-input-icon"><i data-lucide="mail"></i></span>
         <input class="login-input" type="email" id="li-email" placeholder="correo@empresa.com" autocomplete="off">
       </div>
     </div>
     <div class="login-field">
       <label class="login-label">Contraseña</label>
       <div class="login-input-wrap">
-        <span class="login-input-icon">🔑</span>
+        <span class="login-input-icon"><i data-lucide="key"></i></span>
         <input class="login-input" type="password" id="li-pass" placeholder="••••••••" autocomplete="off">
       </div>
     </div>
@@ -50,7 +56,7 @@
 <!-- ══ TOPBAR ══ -->
 <div class="topbar">
   <div class="brand brand-logo">
-    <div class="brand-icon">⚙</div>
+    <div class="brand-icon"><i data-lucide="settings"></i></div>
     <div>
       <div>SIMPOE</div>
       <div class="brand-sub">Sistema Inteligente de Mantenimiento</div>
@@ -58,9 +64,9 @@
   </div>
   <div class="topbar-spacer"></div>
   <div class="tb-status"><div class="pulse-dot"></div>Sistema activo</div>
-  <div id="modulo-activo" style="font-size:.74rem;font-weight:700;color:var(--text2);background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:3px 12px;">🎛 Centro de Control Operacional</div>
-  <div id="tb-empresa" style="font-size:.74rem;font-weight:700;color:var(--blue2);background:rgba(232,120,32,.12);border:1px solid rgba(232,120,32,.3);border-radius:20px;padding:3px 11px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
-  <div id="tb-saved" style="font-size:.72rem;color:var(--green2);display:none;align-items:center;gap:4px;">💾 Guardado</div>
+  <div id="modulo-activo" style="font-size:.74rem;font-weight:700;color:var(--text2);background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:3px 12px;display:flex;align-items:center;gap:5px;"><i data-lucide="sliders" style="width:12px;height:12px;"></i> Centro de Control Operacional</div>
+  <div id="tb-empresa" style="font-size:.74rem;font-weight:700;color:var(--blue2);background:rgba(14,165,233,.12);border:1px solid rgba(14,165,233,.3);border-radius:20px;padding:3px 11px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+  <div id="tb-saved" style="font-size:.72rem;color:var(--green2);display:none;align-items:center;gap:4px;"><i data-lucide="save" style="width:13px;height:13px;"></i> Guardado</div>
   <div class="tb-clock" id="tb-clock">--:--:--</div>
   <div class="tb-user">
     <div class="tb-avatar" id="tb-avatar">?</div>
@@ -68,7 +74,7 @@
       <span class="tb-name" id="tb-name">—</span>
       <span id="tb-role-badge" style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)"></span>
     </div>
-    <button class="tb-logout" onclick="doLogout()" title="Cerrar sesión">⏻</button>
+    <button class="tb-logout" onclick="doLogout()" title="Cerrar sesión"><i data-lucide="power" style="width:14px;height:14px;"></i></button>
   </div>
   <button class="btn btn-primary btn-sm" onclick="abrirModalEquipo()">+ Equipo</button>
 </div>
@@ -79,54 +85,54 @@
   <div class="sidebar-inner">
   <div class="nav-sec">Principal</div>
   <div class="nav-item active" id="nav-dashboard" onclick="goView('dashboard',this)">
-    <span class="nav-icon">📊</span><span>Dashboard</span>
+    <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span><span>Dashboard</span>
   </div>
   <div class="nav-item" id="nav-equipos" onclick="goView('equipos',this)">
-    <span class="nav-icon">⚙️</span><span>Equipos</span>
+    <span class="nav-icon"><i data-lucide="cpu"></i></span><span>Equipos</span>
   </div>
   <div class="nav-sec">Análisis</div>
   <div class="nav-item" id="nav-calculo" onclick="goView('calculo',this)">
-    <span class="nav-icon">🧮</span><span>Cálculo</span>
+    <span class="nav-icon"><i data-lucide="calculator"></i></span><span>Cálculo</span>
   </div>
   <div class="nav-item" id="nav-ia" onclick="goView('ia',this)">
-    <span class="nav-icon">🧠</span><span>IA / Análisis</span>
+    <span class="nav-icon"><i data-lucide="brain"></i></span><span>IA / Análisis</span>
     <span class="nav-badge nb-yellow" id="badge-ia">0</span>
   </div>
   <div class="nav-sec">Gestión</div>
   <div class="nav-item" id="nav-alertas" onclick="goView('alertas',this)">
-    <span class="nav-icon">🔔</span><span>Alertas</span>
+    <span class="nav-icon"><i data-lucide="bell"></i></span><span>Alertas</span>
     <span class="nav-badge nb-red" id="badge-alertas">0</span>
   </div>
   <div class="nav-item" id="nav-historial" onclick="goView('historial',this)">
-    <span class="nav-icon">📋</span><span>Historial</span>
+    <span class="nav-icon"><i data-lucide="history"></i></span><span>Historial</span>
     <span class="nav-badge nb-green" id="badge-historial">0</span>
   </div>
   <div class="nav-item" id="nav-mantenimiento" onclick="goView('mantenimiento',this)">
-    <span class="nav-icon">🔧</span><span>Mantenimiento</span>
+    <span class="nav-icon"><i data-lucide="wrench"></i></span><span>Mantenimiento</span>
   </div>
   <div class="nav-item" id="nav-reporte" onclick="goView('reporte',this)">
-    <span class="nav-icon">📄</span><span>Reporte</span>
+    <span class="nav-icon"><i data-lucide="file-text"></i></span><span>Reporte</span>
     <span class="nav-badge nb-purple">PDF</span>
   </div>
   <div class="nav-item" id="nav-fallas" onclick="goView('fallas',this)">
-    <span class="nav-icon">⚠️</span><span>Fallas</span>
+    <span class="nav-icon"><i data-lucide="alert-triangle"></i></span><span>Fallas</span>
     <span class="nav-badge nb-red" id="badge-fallas">0</span>
   </div>
   <div class="nav-item" id="nav-activos" onclick="goViewSeguro('activos',this)" style="display:none">
-    <span class="nav-icon">🗂️</span><span>Activos</span>
+    <span class="nav-icon"><i data-lucide="folder-open"></i></span><span>Activos</span>
     <span class="nav-badge nb-purple" id="badge-activos">0</span>
   </div>
   <div class="nav-sec" id="nav-sec-admin" style="display:none">Admin</div>
   <div class="nav-item" id="nav-usuarios" onclick="goViewSeguro('usuarios',this)" style="display:none">
-    <span class="nav-icon">👥</span><span>Usuarios</span>
+    <span class="nav-icon"><i data-lucide="users"></i></span><span>Usuarios</span>
     <span class="nav-badge nb-purple" id="badge-usuarios">0</span>
   </div>
   <div class="nav-item" id="nav-empresas" onclick="goViewSeguro('empresas',this)" style="display:none">
-    <span class="nav-icon">🏢</span><span>Empresas</span>
+    <span class="nav-icon"><i data-lucide="building-2"></i></span><span>Empresas</span>
     <span class="nav-badge nb-purple" id="badge-empresas">0</span>
   </div>
   <div class="nav-footer">
-    <button onclick="limpiarDatos()" class="btn-reset-demo">🗑 Reset demo</button>
+    <button onclick="limpiarDatos()" class="btn-reset-demo" style="display:flex;align-items:center;gap:5px;justify-content:center;"><i data-lucide="trash-2" style="width:12px;height:12px;"></i> Reset demo</button>
   </div>
   </div><!-- /sidebar-inner -->
 </nav>
@@ -138,7 +144,7 @@
 <div class="view active" id="view-dashboard">
   <div class="ph">
     <div class="ph-left">
-      <h1 id="dash-title">🎛 Centro de Control Operacional</h1>
+      <h1 id="dash-title"><i data-lucide="sliders" style="width:22px;height:22px;vertical-align:middle;"></i> Centro de Control Operacional</h1>
       <p>Estado en tiempo real de los equipos</p>
     </div>
     <div class="ph-actions">
@@ -159,7 +165,7 @@
       style="background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:9px 24px;color:var(--text2);font-family:var(--font);font-size:.82rem;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px"
       onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue2)'"
       onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">
-      <span>📋</span><span id="dash-detalle-label">Ver alertas y mantenimientos</span><span id="dash-arrow">▾</span>
+      <i data-lucide="clipboard-list" style="width:14px;height:14px;"></i><span id="dash-detalle-label">Ver alertas y mantenimientos</span><span id="dash-arrow">▾</span>
     </button>
   </div>
 
@@ -168,13 +174,13 @@
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px">
       <div class="card">
         <div class="card-head">
-          <span class="card-title">🔔 Alertas Activas</span>
+          <span class="card-title"><i data-lucide="bell" style="width:14px;height:14px;vertical-align:middle;"></i> Alertas Activas</span>
           <span id="dash-alert-count" class="badge b-crit" style="display:none"></span>
         </div>
         <div class="card-body" id="dash-alerts"></div>
       </div>
       <div class="card">
-        <div class="card-head"><span class="card-title">📅 Próximos Mantenimientos</span></div>
+        <div class="card-head"><span class="card-title"><i data-lucide="calendar" style="width:14px;height:14px;vertical-align:middle;"></i> Próximos Mantenimientos</span></div>
         <div class="card-body" id="dash-proximos"></div>
       </div>
     </div>
@@ -186,31 +192,31 @@
   <div class="ph">
     <div class="ph-left"><h1>Gestión de Equipos</h1><p>Busca un equipo para ver su estado de salud</p></div>
     <div class="ph-actions">
-      <button class="btn-export" onclick="exportarEquipos()">📥 Exportar CSV</button>
+      <button class="btn-export" onclick="exportarEquipos()" style="display:flex;align-items:center;gap:5px;"><i data-lucide="download" style="width:13px;height:13px;"></i> Exportar CSV</button>
       <button class="btn btn-primary btn-sm" onclick="abrirModalEquipo()">+ Nuevo Equipo</button>
     </div>
   </div>
   <!-- Buscador grande centrado -->
   <div style="max-width:520px;margin:0 auto 24px;">
     <div style="position:relative;">
-      <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:1.1rem;pointer-events:none;">🔍</span>
+      <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3);display:flex;align-items:center;"><i data-lucide="search" style="width:16px;height:16px;"></i></span>
       <input type="text" id="eq-search" placeholder="Escribe el nombre del equipo..."
         style="width:100%;background:var(--s2);border:1.5px solid var(--border2);border-radius:var(--r2);padding:14px 16px 14px 46px;color:var(--text);font-family:var(--font);font-size:1rem;outline:none;transition:border-color .15s,box-shadow .15s;"
         oninput="renderEquipos()"
-        onfocus="this.style.borderColor='var(--blue)';this.style.boxShadow='0 0 0 3px rgba(232,120,32,.15)'"
+        onfocus="this.style.borderColor='var(--blue)';this.style.boxShadow='0 0 0 3px rgba(14,165,233,.15)'"
         onblur="this.style.borderColor='var(--border2)';this.style.boxShadow='none'">
     </div>
     <div style="text-align:center;font-size:.78rem;color:var(--text3);margin-top:8px">
       O filtra por estado:
       <span class="tab" id="eq-tab-all" style="display:inline;padding:4px 10px;cursor:pointer;border-bottom:none;margin:0 2px;" onclick="setEqTab('all',this)">Todos</span>
-      <span class="tab" id="eq-tab-ok" style="display:inline;padding:4px 10px;cursor:pointer;border-bottom:none;margin:0 2px;" onclick="setEqTab('ok',this)">✅ OK</span>
-      <span class="tab" id="eq-tab-warn" style="display:inline;padding:4px 10px;cursor:pointer;border-bottom:none;margin:0 2px;" onclick="setEqTab('warn',this)">⚠️ Atención</span>
-      <span class="tab" id="eq-tab-crit" style="display:inline;padding:4px 10px;cursor:pointer;border-bottom:none;margin:0 2px;" onclick="setEqTab('crit',this)">🔴 Críticos</span>
+      <span class="tab" id="eq-tab-ok" style="display:inline;padding:4px 10px;cursor:pointer;border-bottom:none;margin:0 2px;" onclick="setEqTab('ok',this)"><i data-lucide="check-circle" style="width:11px;height:11px;vertical-align:middle;"></i> OK</span>
+      <span class="tab" id="eq-tab-warn" style="display:inline;padding:4px 10px;cursor:pointer;border-bottom:none;margin:0 2px;" onclick="setEqTab('warn',this)"><i data-lucide="alert-triangle" style="width:11px;height:11px;vertical-align:middle;"></i> Atención</span>
+      <span class="tab" id="eq-tab-crit" style="display:inline;padding:4px 10px;cursor:pointer;border-bottom:none;margin:0 2px;" onclick="setEqTab('crit',this)"><i data-lucide="circle" style="width:11px;height:11px;vertical-align:middle;color:var(--red);"></i> Críticos</span>
     </div>
   </div>
   <div class="eq-cards" id="eq-cards">
     <div class="empty" style="grid-column:1/-1">
-      <div class="empty-icon">🔍</div>
+      <div class="empty-icon"><i data-lucide="search" style="width:40px;height:40px;opacity:0.4;"></i></div>
       <p>Escribe el nombre del equipo que deseas buscar</p>
     </div>
   </div>
@@ -229,13 +235,13 @@
   </div>
 
   <!-- Selector prominente -->
-  <div style="background:linear-gradient(135deg,rgba(232,120,32,.1),rgba(180,80,8,.06));border:1.5px solid rgba(232,120,32,.3);border-radius:var(--r2);padding:20px 24px;margin-bottom:22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+  <div style="background:linear-gradient(135deg,rgba(14,165,233,.1),rgba(3,105,161,.08));border:1.5px solid rgba(14,165,233,.3);border-radius:var(--r2);padding:20px 24px;margin-bottom:22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
     <div style="flex-shrink:0;font-size:2.2rem">⚙️</div>
     <div style="flex:1">
       <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--blue2);margin-bottom:7px">Equipo a calcular</div>
       <select id="calc-equipo-sel" onchange="calcSeleccionar()"
-        style="width:100%;background:var(--s3);border:1.5px solid rgba(232,120,32,.3);border-radius:var(--r);padding:11px 15px;color:var(--text);font-family:var(--font);font-size:.92rem;outline:none;cursor:pointer;transition:border-color .2s"
-        onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='rgba(232,120,32,.3)'">
+        style="width:100%;background:var(--s3);border:1.5px solid rgba(14,165,233,.3);border-radius:var(--r);padding:11px 15px;color:var(--text);font-family:var(--font);font-size:.92rem;outline:none;cursor:pointer;transition:border-color .2s"
+        onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='rgba(14,165,233,.3)'">
         <option value="">— Selecciona un equipo para calcular —</option>
       </select>
     </div>
@@ -407,7 +413,7 @@
               <div style="font-weight:700;color:var(--red2);margin-bottom:2px">🔴 Correctivo</div>
               <div style="color:var(--text2)">Se realiza después de una falla. Mayor costo por mano de obra urgente, repuestos de emergencia y tiempo muerto de producción.</div>
             </div>
-            <div style="padding:9px;background:rgba(232,120,32,.06);border-radius:var(--r);border-left:3px solid var(--blue)">
+            <div style="padding:9px;background:rgba(14,165,233,.06);border-radius:var(--r);border-left:3px solid var(--blue)">
               <div style="font-weight:700;color:var(--blue2);margin-bottom:2px">🔵 Predictivo</div>
               <div style="color:var(--text2)">Basado en análisis de condición (vibración, temperatura, presión). Anticipa fallas con mayor precisión que el preventivo.</div>
             </div>
@@ -514,7 +520,7 @@
       <button class="btn btn-primary btn-sm" onclick="openModal('modal-nueva-empresa')">+ Nueva Empresa</button>
     </div>
   </div>
-  <div style="background:linear-gradient(135deg,rgba(232,120,32,.1),rgba(232,120,32,.08));border:1px solid rgba(232,120,32,.25);border-radius:var(--r2);padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
+  <div style="background:linear-gradient(135deg,rgba(14,165,233,.1),rgba(14,165,233,.08));border:1px solid rgba(14,165,233,.25);border-radius:var(--r2);padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
     <span style="font-size:1.4rem">🌐</span>
     <div>
       <div style="font-weight:700;color:var(--purple2);font-size:.9rem">Vista Global — Super Administrador</div>
@@ -538,7 +544,7 @@
   </div>
 
   <!-- Acceso restringido banner -->
-  <div style="background:linear-gradient(135deg,rgba(232,120,32,.1),rgba(232,120,32,.08));border:1px solid rgba(232,120,32,.25);border-radius:var(--r2);padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
+  <div style="background:linear-gradient(135deg,rgba(14,165,233,.1),rgba(14,165,233,.08));border:1px solid rgba(14,165,233,.25);border-radius:var(--r2);padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
     <span style="font-size:1.4rem">🔐</span>
     <div>
       <div style="font-weight:700;color:var(--purple2);font-size:.9rem">Sección Restringida — Solo Administrador</div>
@@ -760,7 +766,7 @@
       <button class="modal-close" onclick="closeModal('modal-nueva-empresa')">✕</button>
     </div>
     <div class="modal-body">
-      <div style="background:rgba(232,120,32,.08);border:1px solid rgba(232,120,32,.2);border-radius:var(--r);padding:11px 14px;margin-bottom:16px;font-size:.81rem;color:var(--blue2);">
+      <div style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2);border-radius:var(--r);padding:11px 14px;margin-bottom:16px;font-size:.81rem;color:var(--blue2);">
         🌐 <strong>Super Admin</strong> — Al crear la empresa se generará su Administrador. El <strong>tipo de empresa</strong> adapta formularios, dashboard e IA del sistema.
       </div>
       <div class="form-sec-title">🏢 Datos de la Empresa</div>
@@ -827,7 +833,7 @@
         </div>
         <div class="fg">
           <label>Color Corporativo</label>
-          <input type="color" id="ne-color" value="#e87820" style="height:38px;padding:4px;">
+          <input type="color" id="ne-color" value="#0ea5e9" style="height:38px;padding:4px;">
         </div>
         <div class="fg">
           <label>Sigla / Iniciales</label>
@@ -1012,7 +1018,7 @@
     </div>
     <div class="modal-body">
       <!-- Solo admin puede ver este modal -->
-      <div style="background:rgba(232,120,32,.08);border:1px solid rgba(232,120,32,.2);border-radius:var(--r);padding:10px 13px;margin-bottom:16px;font-size:.8rem;color:var(--purple2);">
+      <div style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2);border-radius:var(--r);padding:10px 13px;margin-bottom:16px;font-size:.8rem;color:var(--purple2);">
         🔐 Estás creando un usuario como <strong id="modal-usr-creador">Administrador</strong>. Quedará registrado como el creador de esta cuenta.
       </div>
       <div class="form-grid">
@@ -1172,16 +1178,46 @@
     <div class="modal-body" id="ver-falla-body"></div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modal-ver-falla')">Cerrar</button>
-      <button class="btn btn-warn btn-sm" id="btn-en-proceso" style="display:none">🔧 Pasar a En Proceso</button>
-      <button class="btn btn-success btn-sm" id="btn-marcar-atendida" style="display:none">✅ Marcar Resuelta</button>
+      <button class="btn btn-warn btn-sm" id="btn-en-proceso" style="display:none"><i data-lucide="wrench" style="width:13px;height:13px;"></i> Pasar a En Proceso</button>
+      <button class="btn btn-success btn-sm" id="btn-marcar-atendida" style="display:none"><i data-lucide="check-circle" style="width:13px;height:13px;"></i> Marcar Resuelta</button>
     </div>
   </div>
 </div>
 
 <div class="toast-wrap" id="toast-wrap"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="lib/supabase.js"></script>
 <script src="data.js"></script>
 <script src="calculos.js"></script>
 <script src="app.js"></script>
+<script src="icons.js"></script>
+<script>
+  // Render static data-lucide icons once all scripts are loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  });
+  // Fallback for scripts loaded after DOMContentLoaded
+  if (document.readyState !== 'loading') {
+    setTimeout(function() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    }, 50);
+  }
+
+  // ══ Service Worker — PWA ══
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/service-worker.js').then(function(reg) {
+        console.log('SIMPOE: SW registrado, scope:', reg.scope);
+      }, function(err) {
+        console.warn('SIMPOE: SW error:', err);
+      });
+    });
+  }
+</script>
 </body>
 </html>

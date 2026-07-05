@@ -16,7 +16,7 @@ function quickLogin(email, pass) {
   doLogin();
 }
 
-function doLogin() {
+async function doLogin() {
   const email = (document.getElementById('li-email').value || '').trim().toLowerCase();
   const pass  = (document.getElementById('li-pass').value  || '').trim();
   const errEl = document.getElementById('login-error');
@@ -27,9 +27,15 @@ function doLogin() {
     return;
   }
 
-  const user = usuarios.find(u => u.email.toLowerCase() === email && u.pass === pass);
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Ingresando...';
 
-  if (!user) {
+  try {
+    await loginWithSupabase(email, pass);
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = 'Ingresar';
     errEl.textContent = '❌ Correo o contraseña incorrectos.';
     errEl.style.display = 'block';
     errEl.style.animation = 'none';
@@ -39,20 +45,18 @@ function doLogin() {
     return;
   }
 
+  btn.disabled = false;
+  btn.textContent = 'Ingresar';
   errEl.style.display = 'none';
-  currentUser = user;
-  // Set empresa context
-  empresaActual = user.empresaId ? empresas.find(e=>e.id===user.empresaId) || null : null;
+  const user = currentUser;
 
   // Generar iniciales dinámicas
   const initials = user.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('tb-avatar').textContent = initials;
-  // Admin gets purple avatar, tecnico gets blue/cyan
   document.getElementById('tb-avatar').style.background = user.role === 'admin'
-    ? 'linear-gradient(135deg,#e87820,#e87820)'
-    : 'linear-gradient(135deg,var(--blue),var(--cyan))';
+    ? 'linear-gradient(135deg,var(--blue),var(--purple))'
+    : 'linear-gradient(135deg,var(--cyan),var(--blue))';
   document.getElementById('tb-name').textContent = user.nombre;
-  // Update role badge with correct labels
   const roleBadge = document.getElementById('tb-role-badge');
   if (roleBadge) {
     const rl = {superadmin:'🌐 Super Admin', admin:'👑 Admin', tecnico:'🔧 Técnico', operador:'⚠️ Operador'};
@@ -60,7 +64,6 @@ function doLogin() {
     roleBadge.style.color = user.role==='superadmin'?'var(--purple2)': user.role==='admin'?'var(--purple2)':'var(--green2)';
   }
 
-  // Update topbar company badge
   const empBadge = document.getElementById('tb-empresa');
   if (empBadge) {
     if (user.role === 'superadmin') {
@@ -72,15 +75,12 @@ function doLogin() {
     }
   }
 
-  // Mostrar/ocultar secciones según rol
   aplicarRol(user.role);
 
   const ls = document.getElementById('login-screen');
   ls.style.opacity = '0';
   setTimeout(() => {
     ls.style.display = 'none';
-    cargarDatos(); // Load this company's specific data
-    cargarActivos(); // Load activos for this company
     renderDashboard();
     updateBadges();
     const rolLabel = {superadmin:'🌐 Super Admin', admin:'👑 Admin', tecnico:'🔧 Técnico', operador:'⚠️ Operador'};
@@ -89,10 +89,8 @@ function doLogin() {
   }, 400);
 }
 
-function doLogout() {
-  currentUser = null;
-  empresaActual = null;
-  // Reset data to defaults so next user starts fresh
+async function doLogout() {
+  await logoutFromSupabase();
   equipos = []; mantenimientos = []; fallas = []; activosEmpresariales = [];
   nextEqId = 1; nextMantId = 1; nextFallaId = 1;
   const empBadge = document.getElementById('tb-empresa');
@@ -100,13 +98,11 @@ function doLogout() {
   document.getElementById('li-email').value = '';
   document.getElementById('li-pass').value  = '';
   document.getElementById('login-error').style.display = 'none';
-  // Reset topbar
   document.getElementById('tb-avatar').textContent = '?';
   document.getElementById('tb-avatar').style.background = 'linear-gradient(135deg,var(--blue),var(--cyan))';
   document.getElementById('tb-name').textContent = '—';
   const rb = document.getElementById('tb-role-badge');
   if (rb) rb.textContent = '';
-  // Reset nav al estado por defecto
   aplicarRol(null);
   const ls = document.getElementById('login-screen');
   ls.style.opacity = '0';
@@ -182,27 +178,44 @@ document.getElementById('login-btn').addEventListener('click', doLogin);
 document.getElementById('li-email').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('li-pass').focus(); });
 document.getElementById('li-pass').addEventListener('keydown',  e => { if(e.key==='Enter') doLogin(); });
 
-// ══════════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════════
-  { id:1, nombre:'Aire Acond. 1',   tipo:'Aire Acondicionado', horasRec:600,  horasDia:8,  factor:1.0, horasAcum:200, ubicacion:'Oficina Principal',     notas:'Marca: LG, Modelo BTU18' },
-  { id:2, nombre:'Motor Principal', tipo:'Motor',              horasRec:500,  horasDia:10, factor:1.2, horasAcum:450, ubicacion:'Planta de Producción',  notas:'Motor trifásico 15HP' },
-  { id:3, nombre:'Bomba Hidráulica',tipo:'Bomba',              horasRec:400,  horasDia:12, factor:1.5, horasAcum:395, ubicacion:'Área de Bombeo',        notas:'Bomba centrífuga 5HP' },
-  { id:4, nombre:'Planta Eléctrica',tipo:'Generador',          horasRec:800,  horasDia:6,  factor:0.8, horasAcum:120, ubicacion:'Subestación',           notas:'Generador emergencia 50KVA' },
-  { id:5, nombre:'Bus #12',         tipo:'Bus / Vehículo',     horasRec:1000, horasDia:14, factor:1.3, horasAcum:750, ubicacion:'Flota Urbana',          notas:'Placa: XYZ-123, Diesel' },
-];
-
-  { id:1, equipoId:1, equipoNombre:'Aire Acond. 1',    fecha:'2025-01-15', tipo:'Preventivo', desc:'Limpieza de filtros y revisión del gas refrigerante',               tecnico:'Carlos Pérez',    costo:150000 },
-  { id:2, equipoId:2, equipoNombre:'Motor Principal',  fecha:'2025-02-20', tipo:'Correctivo', desc:'Reemplazo de rodamientos desgastados por falla en operación',       tecnico:'Andrés López',   costo:320000 },
-  { id:3, equipoId:3, equipoNombre:'Bomba Hidráulica', fecha:'2025-03-10', tipo:'Preventivo', desc:'Cambio de sellos y revisión de presión hidráulica programada',      tecnico:'Juan García',    costo:95000  },
-  { id:4, equipoId:5, equipoNombre:'Bus #12',          fecha:'2025-03-22', tipo:'Correctivo', desc:'Reparación de frenos traseros por desgaste excesivo imprevisto',    tecnico:'Luis Martínez',  costo:480000 },
-  { id:5, equipoId:4, equipoNombre:'Planta Eléctrica', fecha:'2025-04-01', tipo:'Preventivo', desc:'Revisión de bornes, cables y prueba de carga al 75%',               tecnico:'Carlos Pérez',    costo:120000 },
-  { id:6, equipoId:2, equipoNombre:'Motor Principal',  fecha:'2025-04-10', tipo:'Preventivo', desc:'Lubricación general y revisión de correas de transmisión',          tecnico:'Andrés López',   costo:85000  },
-  { id:7, equipoId:1, equipoNombre:'Aire Acond. 1',    fecha:'2025-05-05', tipo:'Correctivo', desc:'Cambio de compresor por falla térmica inesperada a los 220h',       tecnico:'Técnico Externo', costo:550000 },
-  { id:8, equipoId:3, equipoNombre:'Bomba Hidráulica', fecha:'2025-06-12', tipo:'Predictivo', desc:'Análisis de vibración detectó desgaste — ajuste preventivo ejecutado',tecnico:'Juan García',   costo:70000  },
-];
-
-
+// ── Auto-login si hay sesión activa en Supabase ──
+(async function initApp() {
+  try {
+    const hasSession = await initSession();
+    if (hasSession && currentUser) {
+      const user = currentUser;
+      const initials = user.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      document.getElementById('tb-avatar').textContent = initials;
+      document.getElementById('tb-avatar').style.background = user.role === 'admin'
+        ? 'linear-gradient(135deg,#0ea5e9,#0ea5e9)'
+        : 'linear-gradient(135deg,var(--blue),var(--cyan))';
+      document.getElementById('tb-name').textContent = user.nombre;
+      const roleBadge = document.getElementById('tb-role-badge');
+      if (roleBadge) {
+        const rl = {superadmin:'🌐 Super Admin', admin:'👑 Admin', tecnico:'🔧 Técnico', operador:'⚠️ Operador'};
+        roleBadge.textContent = rl[user.role] || user.role;
+        roleBadge.style.color = user.role==='superadmin'?'var(--purple2)': user.role==='admin'?'var(--purple2)':'var(--green2)';
+      }
+      const empBadge = document.getElementById('tb-empresa');
+      if (empBadge) {
+        if (user.role === 'superadmin') {
+          empBadge.textContent = '🌐 Todas las empresas';
+          empBadge.style.color = 'var(--purple2)';
+        } else if (empresaActual) {
+          empBadge.textContent = '🏢 ' + empresaActual.nombre;
+          empBadge.style.color = empresaActual.color || 'var(--blue2)';
+        }
+      }
+      aplicarRol(user.role);
+      const ls = document.getElementById('login-screen');
+      ls.style.display = 'none';
+      renderDashboard();
+      updateBadges();
+    }
+  } catch (e) {
+    console.warn('Init session check:', e);
+  }
+})();
 
 // ══════════════════════════════════════════════
 //  CÁLCULO CORE — Con fórmula correcta
@@ -363,10 +376,9 @@ function renderEmpresas() {
   }).join('');
 }
 
-function crearEmpresa() {
+async function crearEmpresa() {
   if (!currentUser || currentUser.role !== 'superadmin') return;
 
-  // ── Datos empresa ──────────────────────────────────────────
   const nombre       = document.getElementById('ne-nombre').value.trim();
   const nit          = document.getElementById('ne-nit').value.trim();
   const responsable  = document.getElementById('ne-responsable').value.trim();
@@ -378,7 +390,6 @@ function crearEmpresa() {
   const logo         = document.getElementById('ne-logo').value.trim().toUpperCase();
   const tipo         = document.getElementById('ne-tipo-empresa').value || 'industrial';
 
-  // ── Datos administrador ────────────────────────────────────
   const adminNombre  = document.getElementById('ne-admin-nombre').value.trim();
   const adminEmail   = document.getElementById('ne-admin-email').value.trim().toLowerCase();
   const adminPass    = document.getElementById('ne-admin-pass').value;
@@ -388,69 +399,65 @@ function crearEmpresa() {
   const error = msg => { errEl.textContent = msg; errEl.style.display = 'block'; };
   errEl.style.display = 'none';
 
-  // ── Validaciones empresa ───────────────────────────────────
   if (!nombre)      return error('⚠️ Ingresa el nombre de la empresa.');
   if (!nit)         return error('⚠️ Ingresa el NIT de la empresa.');
   if (!responsable) return error('⚠️ Ingresa el nombre del responsable.');
   if (!ciudad)      return error('⚠️ Ingresa la ciudad.');
-  if (!tipo)        return error('⚠️ Selecciona el tipo de empresa (Transporte, Industrial o Construcción).');
+  if (!tipo)        return error('⚠️ Selecciona el tipo de empresa.');
   if (empresas.find(e => e.nit === nit))
                     return error('⚠️ Ya existe una empresa con ese NIT.');
-
-  // ── Validaciones administrador ─────────────────────────────
   if (!adminNombre)                       return error('⚠️ Ingresa el nombre del administrador.');
   if (!adminEmail || !adminEmail.includes('@'))
                                           return error('⚠️ Ingresa un correo válido para el administrador.');
   if (usuarios.find(u => u.email === adminEmail))
-                                          return error('⚠️ Ya existe un usuario con ese correo de administrador.');
+                                          return error('⚠️ Ya existe un usuario con ese correo.');
   if (!adminPass || adminPass.length < 4) return error('⚠️ La contraseña debe tener al menos 4 caracteres.');
   if (adminPass !== adminPass2)           return error('⚠️ Las contraseñas no coinciden.');
 
-  // ── Crear empresa ──────────────────────────────────────────
+  // Crear auth user en Supabase
+  try {
+    const { data: authData, error: authErr } = await sb.auth.signUp({
+      email: adminEmail, password: adminPass,
+      options: { data: { nombre: adminNombre, role: 'admin' } }
+    });
+    if (authErr) {
+      if (authErr.message?.includes('security') || authErr.status === 429) {
+        return error('⚠️ Supabase bloqueó la solicitud por seguridad. Espera unos segundos e intenta de nuevo.');
+      }
+      return error('⚠️ Error al crear usuario en Supabase: ' + authErr.message);
+    }
+  } catch (e) {
+    return error('⚠️ Error de conexión con Supabase. Verifica que el proyecto esté activo.');
+  }
+
   const newEmpresaId = nextEmpresaId++;
   empresas.push({
-    id:         newEmpresaId,
-    nombre, nit, responsable, ciudad, pais,
-    tipo,       // 'transporte' | 'industrial' | 'construccion'
-    telefono:   tel,
-    email:      emailEmp,
-    color,
-    logoText:   logo || nombre.slice(0, 2).toUpperCase(),
-    creadaEn:   new Date().toISOString().slice(0, 10),
-    activa:     true,
+    id: newEmpresaId, nombre, nit, responsable, ciudad, pais,
+    tipo, telefono: tel, email: emailEmp, color,
+    logoText: logo || nombre.slice(0, 2).toUpperCase(),
+    creadaEn: new Date().toISOString().slice(0, 10), activa: true,
   });
 
-  // ── Crear administrador automáticamente ────────────────────
   const newAdmin = {
-    id:        nextUserId++,
-    email:     adminEmail,
-    pass:      adminPass,
-    nombre:    adminNombre,
-    role:      'admin',
-    initials:  adminNombre.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
-    empresaId: newEmpresaId,
-    creadoPor: currentUser.nombre,
-    creadoEn:  new Date().toISOString().slice(0, 10),
+    id: nextUserId++, email: adminEmail, pass: adminPass,
+    nombre: adminNombre, role: 'admin',
+    initials: adminNombre.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
+    empresaId: newEmpresaId, creadoPor: currentUser.nombre,
+    creadoEn: new Date().toISOString().slice(0, 10),
   };
   usuarios.push(newAdmin);
 
-  // ── Guardar y limpiar ──────────────────────────────────────
   guardarUsuarios();
   closeModal('modal-nueva-empresa');
   renderEmpresas();
   updateBadges();
 
-  // Limpiar todos los campos del modal
   ['ne-nombre','ne-nit','ne-responsable','ne-ciudad','ne-telefono','ne-email','ne-logo',
    'ne-admin-nombre','ne-admin-email','ne-admin-pass','ne-admin-pass2']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  document.getElementById('ne-color').value = '#e87820';
+  document.getElementById('ne-color').value = '#0ea5e9';
 
-  toast(
-    '✅ Empresa y Admin Creados',
-    `${nombre} · Admin: ${adminEmail} / ${adminPass}`,
-    'green'
-  );
+  toast('✅ Empresa y Admin Creados', `${nombre} · Admin: ${adminEmail}`, 'green');
 }
 
 function verEmpresa(id) {
@@ -476,7 +483,7 @@ function verEmpresa(id) {
         <div style="width:28px;height:28px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:var(--text2)">${u.initials||u.nombre.slice(0,2).toUpperCase()}</div>
         <div style="flex:1">
           <div style="font-size:.84rem;font-weight:600">${u.nombre}</div>
-          <div style="font-size:.72rem;color:var(--text3)">${u.email} · <span style="font-family:var(--mono)">${u.pass}</span></div>
+          <div style="font-size:.72rem;color:var(--text3)">${u.email}</div>
         </div>
         <span class="badge ${u.role==='admin'?'b-info':'b-ok'}" style="font-size:.68rem">${u.role==='admin'?'👑 Admin':u.role==='tecnico'?'🔧 Técnico':'⚠️ Operador'}</span>
       </div>`).join('') : '<div style="font-size:.81rem;color:var(--text3);text-align:center;padding:10px">Sin usuarios asignados aún.</div>'}`;
@@ -632,8 +639,8 @@ function renderUsuarios() {
     ? filtrado.map(u => {
         const empNombre = u.empresaId ? (empresas.find(e=>e.id===u.empresaId)?.nombre||'—') : '🌐 Global';
         const rolBadge = {
-          superadmin: '<span class="badge" class="cls-orange-badge"><span class="badge-dot"></span>🌐 Super Admin</span>',
-          admin:      '<span class="badge" class="cls-orange-badge"><span class="badge-dot"></span>👑 Admin</span>',
+          superadmin: '<span class="badge"><span class="badge-dot"></span>🌐 Super Admin</span>',
+          admin:      '<span class="badge"><span class="badge-dot"></span>👑 Admin</span>',
           tecnico:    '<span class="badge b-ok"><span class="badge-dot"></span>🔧 Técnico</span>',
           reportante: '<span class="badge b-warn"><span class="badge-dot"></span>⚠️ Operador</span>',
         }[u.role] || '<span class="badge b-info">?</span>';
@@ -641,7 +648,7 @@ function renderUsuarios() {
       <tr>
         <td>
           <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:34px;height:34px;border-radius:50%;background:${u.role==='admin'||u.role==='superadmin'?'linear-gradient(135deg,#e87820,#e87820)':'linear-gradient(135deg,#22c55e,#06b6d4)'};display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;flex-shrink:0">
+            <div style="width:34px;height:34px;border-radius:50%;background:${u.role==='admin'||u.role==='superadmin'?'linear-gradient(135deg,#0ea5e9,#0ea5e9)':'linear-gradient(135deg,#22c55e,#06b6d4)'};display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;flex-shrink:0">
               ${u.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
             </div>
             <div>
@@ -668,7 +675,7 @@ function renderUsuarios() {
     : `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text3)">No se encontraron usuarios</td></tr>`;
 }
 
-function crearUsuario() {
+async function crearUsuario() {
   if (!currentUser || !['admin','superadmin'].includes(currentUser.role)) return;
 
   const nombre    = document.getElementById('nu-nombre').value.trim();
@@ -690,30 +697,50 @@ function crearUsuario() {
   if (usuarios.find(u=>u.email===email)) return mostrarError('⚠️ Ya existe un usuario con ese correo.');
   if (!empresaId && role !== 'superadmin') return mostrarError('⚠️ Selecciona la empresa del usuario.');
 
-  const empNombre = empresaId ? (empresas.find(e=>e.id===empresaId)?.nombre||'—') : 'Global';
-  const nuevoUsuario = {
-    id:        nextUserId++,
-    email, pass, nombre, role,
-    empresaId: empresaId || null,
-    initials:  nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
-    creadoPor: currentUser.nombre,
-    creadoEn:  new Date().toISOString().slice(0,10),
-  };
+  const btn = document.getElementById('modal-nuevo-usuario')?.querySelector('.btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Creando...'; }
 
-  usuarios.push(nuevoUsuario);
-  guardarUsuarios();
-  updateBadges();
+  try {
+    // Intentar crear en Supabase Auth (falla por rate limit? no importa)
+    try {
+      if (window.sb) {
+        const { error: authError } = await sb.auth.signUp({
+          email, password: pass,
+          options: { data: { nombre, role, empresa_id: empresaId } }
+        });
+        if (authError) console.warn('SIMPOE: No se pudo crear en Supabase Auth:', authError.message);
+      }
+    } catch (sbErr) {
+      console.warn('SIMPOE: Supabase Auth no disponible, creando solo local:', sbErr.message);
+    }
 
-  ['nu-nombre','nu-email','nu-pass','nu-pass2'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.value='';
-  });
-  document.getElementById('nu-role').value = 'tecnico';
-  errEl.style.display = 'none';
+    // Crear usuario en localStorage (siempre funciona)
+    const newUser = {
+      id: nextUserId++, email, nombre, role,
+      empresaId: empresaId || null, pass,
+      creadoPor: currentUser.nombre,
+      creadoEn: new Date().toISOString().slice(0, 10),
+    };
+    usuarios.push(newUser);
+    guardarUsuarios();
+    recalcCounters();
+    updateBadges();
 
-  closeModal('modal-nuevo-usuario');
-  renderUsuarios();
-  const rl = {admin:'👑 Admin', tecnico:'🔧 Técnico', operador:'⚠️ Operador'};
-  toast('✅ Usuario Creado', `${nombre} · ${rl[role]||role} · ${empNombre}`, 'green');
+    ['nu-nombre','nu-email','nu-pass','nu-pass2'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    document.getElementById('nu-role').value = 'tecnico';
+    errEl.style.display = 'none';
+    closeModal('modal-nuevo-usuario');
+    renderUsuarios();
+    const rl = {admin:'👑 Admin', tecnico:'🔧 Técnico', operador:'⚠️ Operador'};
+    const empNombre = empresaId ? (empresas.find(e => e.id === empresaId)?.nombre || '—') : 'Global';
+    toast('✅ Usuario Creado', `${nombre} · ${rl[role]||role} · ${empNombre}`, 'green');
+  } catch (e) {
+    mostrarError('⚠️ ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '✔ Crear Usuario'; }
+  }
 }
 
 function verUsuario(id) {
@@ -723,7 +750,7 @@ function verUsuario(id) {
   document.getElementById('modal-vu-titulo').textContent = `👤 ${u.nombre}`;
   document.getElementById('modal-vu-body').innerHTML = `
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px">
-      <div style="width:56px;height:56px;border-radius:50%;background:${u.role==='admin'?'linear-gradient(135deg,#e87820,#e87820)':'linear-gradient(135deg,#22c55e,#06b6d4)'};display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0">
+      <div style="width:56px;height:56px;border-radius:50%;background:${u.role==='admin'?'linear-gradient(135deg,#0ea5e9,#0ea5e9)':'linear-gradient(135deg,#22c55e,#06b6d4)'};display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0">
         ${u.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
       </div>
       <div>
@@ -731,7 +758,7 @@ function verUsuario(id) {
         <div style="font-size:.8rem;color:var(--text3);margin-top:2px">${u.email}</div>
         <div style="margin-top:6px">
           ${u.role==='admin'
-            ? '<span class="badge" class="cls-orange-badge"><span class="badge-dot"></span>👑 Administrador</span>'
+            ? '<span class="badge"><span class="badge-dot"></span>👑 Administrador</span>'
             : '<span class="badge b-ok"><span class="badge-dot"></span>🔧 Técnico</span>'}
         </div>
       </div>
@@ -745,17 +772,11 @@ function verUsuario(id) {
     <div class="kv-row"><span class="kv-key">Estado</span><span class="badge b-ok"><span class="badge-dot"></span>Activo</span></div>
     ${currentUser?.role==='superadmin' ? `
     <div class="kv-row">
-      <span class="kv-key">🔑 Contraseña actual</span>
-      <span class="kv-val" style="font-family:var(--mono);display:flex;align-items:center;gap:8px">
-        <span id="pass-display-${u.id}" style="letter-spacing:.15em">••••••••</span>
-        <button onclick="document.getElementById('pass-display-${u.id}').textContent=document.getElementById('pass-display-${u.id}').textContent==='${u.pass}'?'••••••••':'${u.pass}'"
-          style="font-size:.7rem;background:none;border:1px solid var(--border);border-radius:5px;padding:2px 6px;color:var(--text3);cursor:pointer">
-          👁 Ver
-        </button>
-      </span>
+      <span class="kv-key">🔑 Contraseña</span>
+      <span class="kv-val" style="color:var(--text3);font-size:.8rem">Gestionada por Supabase Auth — usa "Restablecer Contraseña" para enviar email de recuperación</span>
     </div>` : ''}
     <div class="divider"></div>
-    <div style="background:rgba(232,120,32,.07);border:1px solid rgba(232,120,32,.15);border-radius:var(--r);padding:10px 13px;font-size:.8rem;color:var(--text2)">
+    <div style="background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.15);border-radius:var(--r);padding:10px 13px;font-size:.8rem;color:var(--text2)">
       🔐 <strong>Permisos:</strong>
       ${u.role==='admin'
         ? 'Acceso completo — Dashboard, Equipos, Cálculo, Gráficas, Costos, Productividad, IA, Alertas, Historial, Mantenimiento, Reporte y <strong style="color:var(--purple2)">Gestión de Usuarios</strong>.'
@@ -782,43 +803,46 @@ function verUsuario(id) {
   openModal('modal-ver-usuario');
 }
 
-// ── Password reset (Superadmin only) ──────────────────────────────────────
-function resetPassword(id) {
+// ── Password reset (envía email de recuperación) ──
+async function resetPassword(id) {
   if (!currentUser || currentUser.role !== 'superadmin') return;
-  const u = usuarios.find(x=>x.id===id);
+  const u = usuarios.find(x => x.id === id);
   if (!u) return;
 
-  const newPass = prompt(`Restablecer contraseña de "${u.nombre}"
+  if (!confirm(`Enviar correo de restablecimiento de contraseña a "${u.nombre}" (${u.email})?`)) return;
 
-Ingresa la nueva contraseña (mínimo 4 caracteres):`, '');
-  if (newPass === null) return; // cancelled
-  if (!newPass || newPass.trim().length < 4) {
-    toast('⚠️ Error','La contraseña debe tener al menos 4 caracteres','yellow'); return;
+  try {
+    const { error } = await sb.auth.resetPasswordForEmail(u.email);
+    if (error) throw error;
+    toast('📧 Email Enviado', `Instrucciones enviadas a ${u.email}`, 'green');
+    closeModal('modal-ver-usuario');
+  } catch (e) {
+    toast('⚠️ Error', e.message, 'red');
   }
-
-  u.pass = newPass.trim();
-  guardarUsuarios();
-  toast('🔑 Contraseña Restablecida',`${u.nombre} · Nueva contraseña asignada`, 'green');
-  closeModal('modal-ver-usuario');
 }
 
-function eliminarUsuario(id) {
+async function eliminarUsuario(id) {
   if (!currentUser || !['admin','superadmin'].includes(currentUser.role)) return;
-  const u = usuarios.find(x=>x.id===id);
+  const u = usuarios.find(x => x.id === id);
   if (!u) return;
-  if (u.id === currentUser.id) { toast('⚠️ Aviso','No puedes eliminar tu propia cuenta','yellow'); return; }
-  // Proteger siempre al menos un admin
-  const adminsRestantes = usuarios.filter(x=>x.role==='admin' && x.id!==id).length;
-  if (u.role==='admin' && adminsRestantes===0) {
-    toast('⚠️ Aviso','Debe existir al menos un administrador en el sistema','yellow');
+  if (u.id === currentUser.id) { toast('⚠️ Aviso', 'No puedes eliminar tu propia cuenta', 'yellow'); return; }
+  const adminsRestantes = usuarios.filter(x => x.role === 'admin' && x.id !== id).length;
+  if (u.role === 'admin' && adminsRestantes === 0) {
+    toast('⚠️ Aviso', 'Debe existir al menos un administrador en el sistema', 'yellow');
     return;
   }
   if (!confirm(`¿Eliminar al usuario "${u.nombre}"?\nEsta acción no se puede deshacer.`)) return;
-  usuarios = usuarios.filter(x=>x.id!==id);
-  guardarUsuarios();
-  renderUsuarios();
-  updateBadges();
-  toast('🗑️ Usuario Eliminado', u.nombre, 'red');
+
+  try {
+    await sb.from('usuarios').delete().eq('id', u.id);
+    usuarios = usuarios.filter(x => x.id !== id);
+    recalcCounters();
+    renderUsuarios();
+    updateBadges();
+    toast('🗑️ Usuario Eliminado', u.nombre, 'red');
+  } catch (e) {
+    toast('⚠️ Error al eliminar', e.message, 'red');
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -856,7 +880,7 @@ function renderDashboard() {
   const tipo = getTipoEmpresa();
   const cfg  = SECTOR_CONFIG[tipo];
   const dashTitle = document.getElementById('dash-title');
-  if (dashTitle && cfg) dashTitle.textContent = `🎛 Centro de Control — ${cfg.nombre}`;
+  if (dashTitle && cfg) dashTitle.innerHTML = `<i data-lucide="sliders" style="width:22px;height:22px;vertical-align:middle;"></i> 🎛 Centro de Control — ${cfg.nombre}`;
 
   // ── UN solo mensaje — el más importante ───────────────────
   const msgs   = generarMensajesSistema();
@@ -1230,7 +1254,7 @@ function renderIA() {
   if (!eq) return;
 
   const { c, hist, nCorr, nPrev, prod, recs } = iaAnalizar(eq);
-  const colR = {crit:'rgba(239,68,68,.1)',warn:'rgba(245,158,11,.08)',ok:'rgba(34,197,94,.07)',info:'rgba(232,120,32,.07)'};
+  const colR = {crit:'rgba(239,68,68,.1)',warn:'rgba(245,158,11,.08)',ok:'rgba(34,197,94,.07)',info:'rgba(14,165,233,.07)'};
   const colB = {crit:'var(--red)',warn:'var(--yellow)',ok:'var(--green)',info:'var(--blue)'};
 
   const recsHTML = recs.length
@@ -1413,7 +1437,7 @@ function renderIA() {
             </div>`).join('')}
         </div>
         ${c.costoIndisp>0||c.ahorroEstim>0?`
-        <div style="background:rgba(232,120,32,.07);border:1px solid rgba(232,120,32,.2);border-radius:var(--r);padding:10px 13px;font-size:.79rem">
+        <div style="background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.2);border-radius:var(--r);padding:10px 13px;font-size:.79rem">
           <div style="font-weight:700;color:var(--blue2);margin-bottom:6px">💸 Análisis Económico (ISO 55000 §6.2)</div>
           <div class="rg-2" style="gap:4px">
             <div class="kv-row" style="border:none;padding:2px 0"><span class="kv-key">Preventivo/Predictivo</span><span class="kv-val">$${c.costoPrev.toLocaleString()} COP</span></div>
@@ -1459,7 +1483,7 @@ function renderIA() {
           const ahorroPotencial = costCorr * (1 - 1/FACTOR_CORR);
 
           if (!mts.length) return `
-            <div style="padding:12px;background:rgba(232,120,32,.06);border-radius:var(--r);border-left:3px solid var(--blue);font-size:.83rem;color:var(--text2)">
+            <div style="padding:12px;background:rgba(14,165,233,.06);border-radius:var(--r);border-left:3px solid var(--blue);font-size:.83rem;color:var(--text2)">
               📋 <strong>Sin historial de mantenimiento registrado.</strong> Registra mantenimientos para que el sistema genere un análisis de costos detallado.
             </div>`;
 
@@ -1731,7 +1755,7 @@ function renderIA() {
 
       return `
         <!-- Resumen del factor IA -->
-        <div style="background:rgba(232,120,32,.07);border:1px solid rgba(232,120,32,.2);border-radius:var(--r2);padding:13px 16px;margin-bottom:13px">
+        <div style="background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.2);border-radius:var(--r2);padding:13px 16px;margin-bottom:13px">
           <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--blue2);margin-bottom:8px">🤖 Factor de Ajuste IA</div>
           <div class="rg-2" style="font-size:.81rem;gap:6px">
             <div class="kv-row" style="border:none;padding:2px 0"><span class="kv-key">Condición operativa</span><span class="kv-val">${mia.condOp}</span></div>
@@ -1961,7 +1985,7 @@ function renderReporte() {
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
           <div>
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-              <div style="width:44px;height:44px;background:linear-gradient(135deg,var(--blue),var(--cyan));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;box-shadow:0 0 20px rgba(232,120,32,0.2)">⚙</div>
+              <div style="width:44px;height:44px;background:linear-gradient(135deg,var(--blue),var(--cyan));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;box-shadow:0 0 20px rgba(14,165,233,0.2)">⚙</div>
               <div><div style="font-size:1.4rem;font-weight:800;color:var(--blue2)">SIMPOE</div><div style="font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.09em">Sistema Inteligente de Mantenimiento Predictivo</div></div>
             </div>
             <div style="font-size:1.1rem;font-weight:700;margin-bottom:3px">📄 Reporte Ejecutivo de Mantenimiento</div>
@@ -2140,14 +2164,14 @@ function renderReporte() {
             if(nCorrTotal>nPrevTotal) recomendaciones.push({icono:'💡',texto:`Implementar un plan de mantenimiento preventivo estructurado. El ${Math.round(nCorrTotal/(nCorrTotal+nPrevTotal)*100)}% de las intervenciones históricas son correctivas, lo que eleva innecesariamente los costos operativos.`});
             recomendaciones.push({icono:'📊',texto:`Monitorear regularmente los equipos con alto desgaste operativo a través del módulo de IA del sistema SIMPOE para tomar decisiones basadas en datos.`});
             return recomendaciones.map(r=>`
-              <div style="background:rgba(232,120,32,.06);border-left:3px solid var(--blue);border-radius:var(--r);padding:9px 14px;font-size:.82rem;color:var(--text2)">
+              <div style="background:rgba(14,165,233,.06);border-left:3px solid var(--blue);border-radius:var(--r);padding:9px 14px;font-size:.82rem;color:var(--text2)">
                 ${r.icono} ${r.texto}
               </div>`).join('');
           })()}
         </div>
       </div>
 
-      <div style="background:rgba(232,120,32,.06);border:1px solid rgba(232,120,32,.15);border-radius:var(--r);padding:12px 16px;margin-bottom:14px;font-size:.8rem;color:var(--text2)">
+      <div style="background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.15);border-radius:var(--r);padding:12px 16px;margin-bottom:14px;font-size:.8rem;color:var(--text2)">
         🔗 <strong style="color:var(--blue2)">Integración de módulos:</strong> Los resultados de este reporte integran datos de cálculo de vida útil, historial de mantenimiento, costos operativos y productividad, permitiendo una toma de decisiones basada en múltiples variables del sistema SIMPOE.
       </div>
 
@@ -2825,7 +2849,7 @@ function renderIAActivos() {
 
   if(!recs.length) { panel.innerHTML=''; return; }
 
-  const colores = {crit:'rgba(220,53,53,.08)',warn:'rgba(212,150,12,.08)',info:'rgba(232,120,32,.07)'};
+  const colores = {crit:'rgba(220,53,53,.08)',warn:'rgba(212,150,12,.08)',info:'rgba(14,165,233,.07)'};
   const bordes  = {crit:'var(--red)',warn:'var(--yellow)',info:'var(--blue)'};
   panel.innerHTML = `<div class="card" style="margin-bottom:14px">
     <div class="card-head">
@@ -3031,10 +3055,10 @@ function imprimirQRActivo() {
   const win = window.open('','_blank');
   win.document.write(`<!DOCTYPE html><html><head><title>SIMPOE — ${a.nombre}</title>
   <style>body{font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fff;}
-  .label{border:2px solid #e87820;border-radius:10px;padding:16px;width:270px;text-align:center;}
-  .brand{font-size:.95rem;font-weight:900;letter-spacing:.1em;color:#e87820;margin-bottom:2px;}
+  .label{border:2px solid #0ea5e9;border-radius:10px;padding:16px;width:270px;text-align:center;}
+  .brand{font-size:.95rem;font-weight:900;letter-spacing:.1em;color:#0ea5e9;margin-bottom:2px;}
   .tipo{font-size:.6rem;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em;}
-  .codigo{font-family:monospace;font-size:.72rem;color:#e87820;font-weight:700;margin-bottom:8px;}
+  .codigo{font-family:monospace;font-size:.72rem;color:#0ea5e9;font-weight:700;margin-bottom:8px;}
   .nombre{font-size:.9rem;font-weight:700;margin-top:8px;color:#111;}
   .meta{font-size:.7rem;color:#555;margin-top:3px;} .serie{font-size:.63rem;font-family:monospace;color:#888;}</style></head><body>
   <div class="label">

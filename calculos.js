@@ -630,7 +630,7 @@ function selTipoEmpresa(tipo) {
     if (!btn) return;
     if (t === tipo) {
       btn.style.borderColor = 'var(--blue)';
-      btn.style.background  = 'rgba(232,120,32,.1)';
+      btn.style.background  = 'rgba(14,165,233,.1)';
     } else {
       btn.style.borderColor = 'var(--border)';
       btn.style.background  = 'var(--s3)';

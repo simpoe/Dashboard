@@ -873,7 +873,7 @@ function renderDashboard() {
   const tipo = getTipoEmpresa();
   const cfg  = SECTOR_CONFIG[tipo];
   const dashTitle = document.getElementById('dash-title');
-  if (dashTitle && cfg) dashTitle.textContent = `🎛 Centro de Control — ${cfg.nombre}`;
+  if (dashTitle && cfg) dashTitle.innerHTML = `<i data-lucide="sliders" style="width:22px;height:22px;vertical-align:middle;"></i> 🎛 Centro de Control — ${cfg.nombre}`;
 
   // ── UN solo mensaje — el más importante ───────────────────
   const msgs   = generarMensajesSistema();

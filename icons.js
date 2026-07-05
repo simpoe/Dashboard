@@ -59,7 +59,20 @@ const EMOJI_TO_LUCIDE = {
   '🛠️': 'tool',
   '🛠': 'tool',
   '🛢️': 'container',
-  '🛢': 'container'
+  '🛢': 'container',
+  '🖨': 'printer',
+  '📐': 'triangle',
+  '▶': 'play',
+  '✔': 'check',
+  '⭕': 'circle-dot',
+  '🔒': 'lock',
+  '🖥️': 'monitor',
+  '🖥': 'monitor',
+  'ℹ️': 'info',
+  'ℹ': 'info',
+  '📎': 'paperclip',
+  '📷': 'camera',
+  '↻': 'refresh-cw'
 };
 
 const sortedEmojis = Object.keys(EMOJI_TO_LUCIDE).sort((a, b) => b.length - a.length);

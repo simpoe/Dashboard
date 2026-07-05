@@ -488,14 +488,8 @@ canvas { width: 100% !important; height: 100% !important; }
 /* ── RESPONSIVE GRID HELPERS ── */
 .rg-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .rg-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.rg-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }rack{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
-
-
-/* ── RESPONSIVE GRID HELPERS ── */
-.rg-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.rg-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-.rg-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.rg-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 /* ─────────────────────────────────────────────
    RESPONSIVE — Mobile First
    960px  = tablet

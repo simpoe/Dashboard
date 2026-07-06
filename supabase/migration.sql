@@ -297,17 +297,17 @@ end $$;
 --  ROW LEVEL SECURITY
 -- ══════════════════════════════════════════════════════════
 
--- ── Helper: rol del usuario actual ──
+-- ── Helper: rol del usuario actual (security definer para evitar recursión RLS) ──
 create or replace function current_user_role()
 returns rol_usuario as $$
   select role from public.usuarios where auth_id = auth.uid();
-$$ language sql stable;
+$$ language sql stable security definer;
 
--- ── Helper: empresa_id del usuario actual ──
+-- ── Helper: empresa_id del usuario actual (security definer para evitar recursión RLS) ──
 create or replace function current_user_empresa_id()
 returns uuid as $$
   select empresa_id from public.usuarios where auth_id = auth.uid();
-$$ language sql stable;
+$$ language sql stable security definer;
 
 -- ── Helper: el usuario es superadmin ──
 create or replace function is_superadmin()

@@ -7,29 +7,56 @@
 create extension if not exists "pgcrypto";
 create extension if not exists "uuid-ossp";
 
--- ── ENUMs ──
-create type rol_usuario as enum ('superadmin', 'admin', 'tecnico', 'operador');
-create type tipo_empresa as enum ('transporte', 'industrial', 'construccion', 'activos');
-create type criticidad_equipo as enum ('alta', 'media', 'baja');
-create type tipo_mantenimiento as enum ('Preventivo', 'Correctivo', 'Predictivo');
-create type urgencia_falla as enum ('alta', 'media', 'baja');
-create type estado_falla as enum ('reportada', 'en_proceso', 'resuelta');
-create type estado_activo as enum ('operativo', 'danado', 'mantenimiento', 'baja');
-create type tipo_equipo as enum (
-  'Motor', 'Bomba', 'Aire Acondicionado', 'Compresor',
-  'Bus / Vehiculo', 'Generador', 'Transformador',
-  'Banda Transportadora', 'Otro'
-);
-create type categoria_activo as enum (
-  'Computadores', 'Portatiles', 'Impresoras', 'Teclados', 'Mouses',
-  'Escritorios', 'Sillas', 'Aires Acondicionados', 'Televisores',
-  'Routers', 'Camaras', 'UPS', 'Servidores', 'Otro'
-);
+-- ── ENUMs (con IF NOT EXISTS para poder re-ejecutar) ──
+do $$ begin
+  create type rol_usuario as enum ('superadmin', 'admin', 'tecnico', 'operador');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type tipo_empresa as enum ('transporte', 'industrial', 'construccion', 'activos');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type criticidad_equipo as enum ('alta', 'media', 'baja');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type tipo_mantenimiento as enum ('Preventivo', 'Correctivo', 'Predictivo');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type urgencia_falla as enum ('alta', 'media', 'baja');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type estado_falla as enum ('reportada', 'en_proceso', 'resuelta');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type estado_activo as enum ('operativo', 'danado', 'mantenimiento', 'baja');
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type tipo_equipo as enum (
+    'Motor', 'Bomba', 'Aire Acondicionado', 'Compresor',
+    'Bus / Vehiculo', 'Generador', 'Transformador',
+    'Banda Transportadora', 'Otro'
+  );
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create type categoria_activo as enum (
+    'Computadores', 'Portatiles', 'Impresoras', 'Teclados', 'Mouses',
+    'Escritorios', 'Sillas', 'Aires Acondicionados', 'Televisores',
+    'Routers', 'Camaras', 'UPS', 'Servidores', 'Otro'
+  );
+exception when duplicate_object then null;
+end $$;
 
--- ── TABLAS ──
+-- ── TABLAS (con IF NOT EXISTS para poder re-ejecutar) ──
 
 -- 1. EMPRESAS
-create table empresas (
+create table if not exists empresas (
   id          uuid primary key default gen_random_uuid(),
   nombre      text not null,
   nit         text not null unique,
@@ -47,7 +74,7 @@ create table empresas (
 );
 
 -- 2. USUARIOS (vinculado a auth.users de Supabase)
-create table usuarios (
+create table if not exists usuarios (
   id          uuid primary key default gen_random_uuid(),
   auth_id     uuid unique references auth.users(id) on delete cascade,
   email       text not null unique,
@@ -61,7 +88,7 @@ create table usuarios (
 );
 
 -- 3. EQUIPOS
-create table equipos (
+create table if not exists equipos (
   id            uuid primary key default gen_random_uuid(),
   empresa_id    uuid not null references empresas(id) on delete cascade,
   codigo        text not null,
@@ -90,7 +117,7 @@ create table equipos (
 );
 
 -- 4. MANTENIMIENTOS
-create table mantenimientos (
+create table if not exists mantenimientos (
   id              uuid primary key default gen_random_uuid(),
   empresa_id      uuid not null references empresas(id) on delete cascade,
   equipo_id       uuid not null references equipos(id) on delete cascade,
@@ -105,7 +132,7 @@ create table mantenimientos (
 );
 
 -- 5. FALLAS
-create table fallas (
+create table if not exists fallas (
   id              uuid primary key default gen_random_uuid(),
   empresa_id      uuid not null references empresas(id) on delete cascade,
   equipo_id       uuid not null references equipos(id) on delete cascade,
@@ -122,7 +149,7 @@ create table fallas (
 );
 
 -- 6. ACTIVOS EMPRESARIALES
-create table activos (
+create table if not exists activos (
   id              uuid primary key default gen_random_uuid(),
   empresa_id      uuid not null references empresas(id) on delete cascade,
   codigo          text not null,
@@ -150,7 +177,7 @@ create table activos (
 );
 
 -- 7. MOVIMIENTOS DE ACTIVOS
-create table movimientos_activos (
+create table if not exists movimientos_activos (
   id                uuid primary key default gen_random_uuid(),
   activo_id         uuid not null references activos(id) on delete cascade,
   sede_anterior     text default '',
@@ -166,7 +193,7 @@ create table movimientos_activos (
 );
 
 -- 8. HISTORIAL DE ACTIVOS
-create table historial_activos (
+create table if not exists historial_activos (
   id          uuid primary key default gen_random_uuid(),
   activo_id   uuid not null references activos(id) on delete cascade,
   tipo        text not null check (tipo in ('registro', 'edicion', 'movimiento', 'baja')),
@@ -177,18 +204,18 @@ create table historial_activos (
 );
 
 -- ── ÍNDICES ──
-create index idx_usuarios_empresa on usuarios(empresa_id);
-create index idx_usuarios_auth on usuarios(auth_id);
-create index idx_equipos_empresa on equipos(empresa_id);
-create index idx_mantenimientos_empresa on mantenimientos(empresa_id);
-create index idx_mantenimientos_equipo on mantenimientos(equipo_id);
-create index idx_mantenimientos_fecha on mantenimientos(fecha);
-create index idx_fallas_empresa on fallas(empresa_id);
-create index idx_fallas_equipo on fallas(equipo_id);
-create index idx_fallas_estado on fallas(estado);
-create index idx_activos_empresa on activos(empresa_id);
-create index idx_movimientos_activo on movimientos_activos(activo_id);
-create index idx_historial_activo on historial_activos(activo_id);
+create index if not exists idx_usuarios_empresa on usuarios(empresa_id);
+create index if not exists idx_usuarios_auth on usuarios(auth_id);
+create index if not exists idx_equipos_empresa on equipos(empresa_id);
+create index if not exists idx_mantenimientos_empresa on mantenimientos(empresa_id);
+create index if not exists idx_mantenimientos_equipo on mantenimientos(equipo_id);
+create index if not exists idx_mantenimientos_fecha on mantenimientos(fecha);
+create index if not exists idx_fallas_empresa on fallas(empresa_id);
+create index if not exists idx_fallas_equipo on fallas(equipo_id);
+create index if not exists idx_fallas_estado on fallas(estado);
+create index if not exists idx_activos_empresa on activos(empresa_id);
+create index if not exists idx_movimientos_activo on movimientos_activos(activo_id);
+create index if not exists idx_historial_activo on historial_activos(activo_id);
 
 -- ── FUNCIÓN: actualizar updated_at ──
 create or replace function trigger_set_updated_at()
@@ -199,19 +226,37 @@ begin
 end;
 $$ language plpgsql;
 
--- ── TRIGGERS ──
-create trigger trg_empresas_updated_at before update on empresas
-  for each row execute function trigger_set_updated_at();
-create trigger trg_usuarios_updated_at before update on usuarios
-  for each row execute function trigger_set_updated_at();
-create trigger trg_equipos_updated_at before update on equipos
-  for each row execute function trigger_set_updated_at();
-create trigger trg_mantenimientos_updated_at before update on mantenimientos
-  for each row execute function trigger_set_updated_at();
-create trigger trg_fallas_updated_at before update on fallas
-  for each row execute function trigger_set_updated_at();
-create trigger trg_activos_updated_at before update on activos
-  for each row execute function trigger_set_updated_at();
+-- ── TRIGGERS (con DO block para evitar duplicados) ──
+do $$ begin
+  create trigger trg_empresas_updated_at before update on empresas
+    for each row execute function trigger_set_updated_at();
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create trigger trg_usuarios_updated_at before update on usuarios
+    for each row execute function trigger_set_updated_at();
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create trigger trg_equipos_updated_at before update on equipos
+    for each row execute function trigger_set_updated_at();
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create trigger trg_mantenimientos_updated_at before update on mantenimientos
+    for each row execute function trigger_set_updated_at();
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create trigger trg_fallas_updated_at before update on fallas
+    for each row execute function trigger_set_updated_at();
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  create trigger trg_activos_updated_at before update on activos
+    for each row execute function trigger_set_updated_at();
+exception when duplicate_object then null;
+end $$;
 
 -- ── AUTO GENERAR CÓDIGOS ──
 create or replace function generar_codigo_equipo()
@@ -224,8 +269,11 @@ begin
 end;
 $$ language plpgsql;
 
-create trigger trg_equipos_codigo before insert on equipos
-  for each row execute function generar_codigo_equipo();
+do $$ begin
+  create trigger trg_equipos_codigo before insert on equipos
+    for each row execute function generar_codigo_equipo();
+exception when duplicate_object then null;
+end $$;
 
 -- ── FUNCIÓN: alias para auth trigger ──
 create or replace function public.handle_new_user()
@@ -238,9 +286,12 @@ end;
 $$ language plpgsql security definer;
 
 -- ── TRIGGER: nuevo usuario en auth.users -> usuarios ──
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
+do $$ begin
+  create trigger on_auth_user_created
+    after insert on auth.users
+    for each row execute function public.handle_new_user();
+exception when duplicate_object then null;
+end $$;
 
 -- ══════════════════════════════════════════════════════════
 --  ROW LEVEL SECURITY

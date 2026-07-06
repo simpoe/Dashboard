@@ -2,7 +2,7 @@
   "name": "SIMPOE — Mantenimiento Predictivo",
   "short_name": "SIMPOE",
   "description": "Sistema Inteligente de Mantenimiento Predictivo y Productividad Industrial",
-  "start_url": "/",
+  "start_url": ".",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#080b0d",

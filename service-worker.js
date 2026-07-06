@@ -1,15 +1,15 @@
 const CACHE = 'simpoe-v1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/icons.js',
-  '/app.js',
-  '/calculos.js',
-  '/data.js',
-  '/lib/supabase.js',
-  '/simpoe-icon.svg',
-  '/manifest.json',
+  './',
+  './index.html',
+  './styles.css',
+  './icons.js',
+  './app.js',
+  './calculos.js',
+  './data.js',
+  './lib/supabase.js',
+  './simpoe-icon.svg',
+  './manifest.json',
   'https://unpkg.com/lucide@latest',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
@@ -42,7 +42,7 @@ self.addEventListener('fetch', e => {
         const clone = res.clone();
         caches.open(CACHE).then(cache => cache.put(request, clone));
         return res;
-      }).catch(() => caches.match('/'))
+      }).catch(() => caches.match('./'))
     )
   );
 });

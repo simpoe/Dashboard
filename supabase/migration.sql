@@ -324,70 +324,70 @@ $$ language sql stable;
 -- ══ EMPRESAS ══
 alter table empresas enable row level security;
 
-create policy "superadmin puede todo en empresas"
+create policy if not exists "superadmin puede todo en empresas"
   on empresas for all
   using (is_superadmin())
   with check (is_superadmin());
 
-create policy "usuarios pueden ver su empresa"
+create policy if not exists "usuarios pueden ver su empresa"
   on empresas for select
   using (id = current_user_empresa_id());
 
 -- ══ USUARIOS ══
 alter table usuarios enable row level security;
 
-create policy "superadmin puede todo en usuarios"
+create policy if not exists "superadmin puede todo en usuarios"
   on usuarios for all
   using (is_superadmin())
   with check (is_superadmin());
 
-create policy "admin puede ver/crear usuarios de su empresa"
+create policy if not exists "admin puede ver/crear usuarios de su empresa"
   on usuarios for select
   using (is_admin_or_super() and (empresa_id = current_user_empresa_id() or current_user_role() = 'superadmin'));
 
-create policy "admin puede insertar en su empresa"
+create policy if not exists "admin puede insertar en su empresa"
   on usuarios for insert
   with check (is_admin_or_super() and (empresa_id = current_user_empresa_id() or current_user_role() = 'superadmin'));
 
-create policy "admin puede actualizar en su empresa"
+create policy if not exists "admin puede actualizar en su empresa"
   on usuarios for update
   using (is_admin_or_super() and (empresa_id = current_user_empresa_id() or current_user_role() = 'superadmin'))
   with check (is_admin_or_super() and (empresa_id = current_user_empresa_id() or current_user_role() = 'superadmin'));
 
-create policy "admin puede eliminar en su empresa"
+create policy if not exists "admin puede eliminar en su empresa"
   on usuarios for delete
   using (is_admin_or_super() and (empresa_id = current_user_empresa_id() or current_user_role() = 'superadmin'));
 
-create policy "usuarios pueden ver su propio perfil"
+create policy if not exists "usuarios pueden ver su propio perfil"
   on usuarios for select
   using (auth_id = auth.uid());
 
 -- ══ EQUIPOS ══
 alter table equipos enable row level security;
 
-create policy "superadmin puede todo en equipos"
+create policy if not exists "superadmin puede todo en equipos"
   on equipos for all
   using (is_superadmin())
   with check (is_superadmin());
 
-create policy "admin y tecnico pueden CRUD equipos de su empresa"
+create policy if not exists "admin y tecnico pueden CRUD equipos de su empresa"
   on equipos for all
   using (empresa_id = current_user_empresa_id() and current_user_role() in ('admin', 'tecnico', 'superadmin'))
   with check (empresa_id = current_user_empresa_id() and current_user_role() in ('admin', 'tecnico', 'superadmin'));
 
-create policy "operador puede ver equipos de su empresa"
+create policy if not exists "operador puede ver equipos de su empresa"
   on equipos for select
   using (empresa_id = current_user_empresa_id());
 
 -- ══ MANTENIMIENTOS ══
 alter table mantenimientos enable row level security;
 
-create policy "superadmin puede todo en mantenimientos"
+create policy if not exists "superadmin puede todo en mantenimientos"
   on mantenimientos for all
   using (is_superadmin())
   with check (is_superadmin());
 
-create policy "admin y tecnico pueden CRUD mantenimientos"
+create policy if not exists "admin y tecnico pueden CRUD mantenimientos"
   on mantenimientos for all
   using (empresa_id = current_user_empresa_id() and current_user_role() in ('admin', 'tecnico', 'superadmin'))
   with check (empresa_id = current_user_empresa_id() and current_user_role() in ('admin', 'tecnico', 'superadmin'));
@@ -395,33 +395,33 @@ create policy "admin y tecnico pueden CRUD mantenimientos"
 -- ══ FALLAS ══
 alter table fallas enable row level security;
 
-create policy "superadmin puede todo en fallas"
+create policy if not exists "superadmin puede todo en fallas"
   on fallas for all
   using (is_superadmin())
   with check (is_superadmin());
 
-create policy "todos los roles pueden insertar fallas"
+create policy if not exists "todos los roles pueden insertar fallas"
   on fallas for insert
   with check (empresa_id = current_user_empresa_id());
 
-create policy "admin y tecnico pueden gestionar fallas"
+create policy if not exists "admin y tecnico pueden gestionar fallas"
   on fallas for all
   using (empresa_id = current_user_empresa_id() and current_user_role() in ('admin', 'tecnico', 'superadmin'))
   with check (empresa_id = current_user_empresa_id() and current_user_role() in ('admin', 'tecnico', 'superadmin'));
 
-create policy "operador puede ver sus fallas"
+create policy if not exists "operador puede ver sus fallas"
   on fallas for select
   using (empresa_id = current_user_empresa_id() and reportado_por = (select nombre from public.usuarios where auth_id = auth.uid()));
 
 -- ══ ACTIVOS ══
 alter table activos enable row level security;
 
-create policy "superadmin puede todo en activos"
+create policy if not exists "superadmin puede todo en activos"
   on activos for all
   using (is_superadmin())
   with check (is_superadmin());
 
-create policy "usuarios de empresa tipo activos pueden gestionar activos"
+create policy if not exists "usuarios de empresa tipo activos pueden gestionar activos"
   on activos for all
   using (empresa_id = current_user_empresa_id())
   with check (empresa_id = current_user_empresa_id());
@@ -430,7 +430,7 @@ create policy "usuarios de empresa tipo activos pueden gestionar activos"
 alter table movimientos_activos enable row level security;
 alter table historial_activos enable row level security;
 
-create policy "acceso via activo padre"
+create policy if not exists "acceso via activo padre"
   on movimientos_activos for all
   using (
     exists (
@@ -447,7 +447,7 @@ create policy "acceso via activo padre"
     )
   );
 
-create policy "acceso via activo padre (historial)"
+create policy if not exists "acceso via activo padre (historial)"
   on historial_activos for all
   using (
     exists (

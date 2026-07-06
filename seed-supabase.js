@@ -8,13 +8,13 @@ const SEED_USERS = [
   { email:'admin@simmp.co',         password:'admin123', nombre:'Super Administrador', role:'superadmin', empresaId:null },
   { email:'admin@transcaribe.co',   password:'admin123', nombre:'Jorge Ramírez',   role:'admin',    empresaId:1 },
   { email:'tecnico@transcaribe.co', password:'tec456',   nombre:'Pedro Martínez',  role:'tecnico',  empresaId:1 },
-  { email:'operador@transcaribe.co',password:'op789',    nombre:'Luisa Cantillo',  role:'operador', empresaId:1 },
+  { email:'operador@transcaribe.co',password:'op7890',   nombre:'Luisa Cantillo',  role:'operador', empresaId:1 },
   { email:'admin@orozco.co',        password:'admin123', nombre:'Marta Solano',    role:'admin',    empresaId:2 },
   { email:'tecnico@orozco.co',      password:'tec456',   nombre:'Andrés López',    role:'tecnico',  empresaId:2 },
-  { email:'operador@orozco.co',     password:'op789',    nombre:'Diego Vargas',    role:'operador', empresaId:2 },
+  { email:'operador@orozco.co',     password:'op7890',   nombre:'Diego Vargas',    role:'operador', empresaId:2 },
   { email:'admin@caribesas.co',     password:'admin123', nombre:'Andrés Pérez',    role:'admin',    empresaId:3 },
   { email:'tecnico@caribesas.co',   password:'tec456',   nombre:'Luis Moreno',     role:'tecnico',  empresaId:3 },
-  { email:'operador@caribesas.co',  password:'op789',    nombre:'Carlos Builes',   role:'operador', empresaId:3 },
+  { email:'operador@caribesas.co',  password:'op7890',   nombre:'Carlos Builes',   role:'operador', empresaId:3 },
   { email:'admin@activosatl.co',    password:'admin123', nombre:'Diana Cortés',    role:'admin',    empresaId:4 },
   { email:'tecnico@activosatl.co',  password:'tec456',   nombre:'Ricardo Núñez',   role:'tecnico',  empresaId:4 },
 ];
@@ -23,6 +23,7 @@ const SEED_USERS = [
   console.log('🚀 Sembrando usuarios demo en Supabase Auth...\n');
 
   for (const u of SEED_USERS) {
+    await new Promise(r => setTimeout(r, 1500));
     try {
       const { data, error } = await sb.auth.signUp({
         email: u.email,

@@ -448,6 +448,18 @@ async function crearEmpresa() {
   usuarios.push(newAdmin);
 
   guardarUsuarios();
+
+  // Inicializar datos vacíos (sin demo) para la nueva empresa
+  try {
+    localStorage.setItem('simpoe_v3_data_emp_' + newEmpresaId, JSON.stringify({
+      equipos: [], mantenimientos: [], fallas: [],
+      nextEqId: 1, nextMantId: 1, nextFallaId: 1
+    }));
+    localStorage.setItem('simpoe_activos_emp_' + newEmpresaId, JSON.stringify({
+      activosEmpresariales: [], nextActivoId: 1
+    }));
+  } catch(e) { console.warn('No se pudo inicializar datos vacíos:', e); }
+
   closeModal('modal-nueva-empresa');
   renderEmpresas();
   updateBadges();

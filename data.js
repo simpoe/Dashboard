@@ -109,7 +109,7 @@ function cargarDatos() {
     const raw = localStorage.getItem(getEmpresaKey());
     if(!raw) { seedDemoDataForEmpresa(); return true; }
     const d = JSON.parse(raw);
-    if(d.equipos && Array.isArray(d.equipos) && d.equipos.length > 0) {
+    if(d.equipos && Array.isArray(d.equipos)) {
       equipos        = d.equipos;
       mantenimientos = d.mantenimientos || [];
       fallas         = d.fallas         || [];
@@ -292,7 +292,7 @@ function cargarActivos() {
       const d = JSON.parse(raw);
       activosEmpresariales = d.activosEmpresariales || [];
       nextActivoId = d.nextActivoId || (activosEmpresariales.length ? Math.max(...activosEmpresariales.map(a=>a.id))+1 : 1);
-      if (activosEmpresariales.length > 0) return true;
+      return true;
     }
   } catch(e){}
   if (getTipoEmpresa() === 'activos') {

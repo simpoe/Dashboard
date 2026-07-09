@@ -101,12 +101,12 @@ function guardarDatos() {
       clearTimeout(ind._timer);
       ind._timer = setTimeout(()=>{ ind.style.display='none'; }, 2500);
     }
-    syncToSupabase();
+    if (typeof window.syncToSupabase === 'function') window.syncToSupabase();
   } catch(e) { console.warn('No se pudo guardar:', e); }
 }
 
 // ── Sincronización con Supabase ──────────────────────────────────────
-function mostrarSyncEstado(texto, color) {
+window.mostrarSyncEstado = function mostrarSyncEstado(texto, color) {
   const el = document.getElementById('tb-sync');
   const tx = document.getElementById('tb-sync-text');
   if (!el || !tx) return;
@@ -117,7 +117,7 @@ function mostrarSyncEstado(texto, color) {
   el._timer = setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
 
-async function syncToSupabase() {
+window.syncToSupabase = async function syncToSupabase() {
   if (typeof sb === 'undefined' || !empresaActual?.id) return;
   try {
     const { data: { session } } = await sb.auth.getSession();
@@ -141,7 +141,7 @@ async function syncToSupabase() {
   }
 }
 
-async function syncActivosToSupabase() {
+window.syncActivosToSupabase = async function syncActivosToSupabase() {
   if (typeof sb === 'undefined' || !empresaActual?.id) return;
   try {
     const { data: { session } } = await sb.auth.getSession();
@@ -165,7 +165,7 @@ async function syncActivosToSupabase() {
   }
 }
 
-async function loadFromSupabase() {
+window.loadFromSupabase = async function loadFromSupabase() {
   if (typeof sb === 'undefined' || !empresaActual?.id) return false;
   try {
     const { data: { session } } = await sb.auth.getSession();
@@ -187,7 +187,7 @@ async function loadFromSupabase() {
   }
 }
 
-async function loadActivosFromSupabase() {
+window.loadActivosFromSupabase = async function loadActivosFromSupabase() {
   if (typeof sb === 'undefined' || !empresaActual?.id) return false;
   try {
     const { data: { session } } = await sb.auth.getSession();
@@ -391,7 +391,7 @@ function getActivosKey() {
 function guardarActivos() {
   try {
     localStorage.setItem(getActivosKey(), JSON.stringify({activosEmpresariales, nextActivoId}));
-    syncActivosToSupabase();
+    if (typeof window.syncActivosToSupabase === 'function') window.syncActivosToSupabase();
   } catch(e){}
 }
 

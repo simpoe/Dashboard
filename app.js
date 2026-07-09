@@ -864,8 +864,8 @@ function recalcCounters() {
 function syncNow() {
   if (!currentUser) { toast('⚠️ Aviso', 'Inicia sesión para sincronizar', 'yellow'); return; }
   if (typeof sb === 'undefined') { toast('⚠️ Sin conexión', 'Supabase no está disponible', 'yellow'); return; }
-  syncToSupabase();
-  syncActivosToSupabase();
+  if (typeof window.syncToSupabase === 'function') window.syncToSupabase();
+  if (typeof window.syncActivosToSupabase === 'function') window.syncActivosToSupabase();
   toast('☁️ Sincronizando', 'Subiendo datos a la nube...', 'blue');
 }
 

@@ -124,6 +124,7 @@ function aplicarRol(role) {
   const hide = id => { const el=document.getElementById(id); if(el) el.style.display='none'; };
 
   const navActivos = document.getElementById('nav-activos');
+  const btnEq = document.getElementById('btn-nuevo-equipo');
   const isActivos = getTipoEmpresa() === 'activos';
   if (role === 'superadmin') {
     if (navUsuarios)    navUsuarios.style.display    = 'flex';
@@ -131,32 +132,35 @@ function aplicarRol(role) {
     if (navEmpresas)    navEmpresas.style.display    = 'flex';
     allOps.forEach(hide);
     if (navActivos) navActivos.style.display = 'none';
-  } else if (role === 'admin') {
-    if (navUsuarios)    navUsuarios.style.display    = 'flex';
-    if (navUsuariosSec) navUsuariosSec.style.display = 'block';
-    if (navEmpresas)    navEmpresas.style.display    = 'none';
-    allOps.forEach(show);
-    if (navActivos) navActivos.style.display = isActivos ? 'flex' : 'none';
-  } else if (role === 'tecnico') {
-    if (navUsuarios)    navUsuarios.style.display    = 'none';
-    if (navUsuariosSec) navUsuariosSec.style.display = 'none';
-    if (navEmpresas)    navEmpresas.style.display    = 'none';
-    allOps.forEach(show);
-    if (navActivos) navActivos.style.display = isActivos ? 'flex' : 'none';
-  } else if (role === 'operador') {
-    if (navUsuarios)    navUsuarios.style.display    = 'none';
-    if (navUsuariosSec) navUsuariosSec.style.display = 'none';
-    if (navEmpresas)    navEmpresas.style.display    = 'none';
-    ['nav-equipos','nav-calculo','nav-ia','nav-alertas',
-     'nav-historial','nav-mantenimiento','nav-reporte'].forEach(hide);
-    show('nav-fallas');
-    // Show activos module if company type is activos
-    if (getTipoEmpresa()==='activos') show('nav-activos'); else hide('nav-activos');
+    if (btnEq) btnEq.style.display = 'none';
   } else {
-    if (navUsuarios)    navUsuarios.style.display    = 'none';
-    if (navUsuariosSec) navUsuariosSec.style.display = 'none';
-    if (navEmpresas)    navEmpresas.style.display    = 'none';
-    allOps.forEach(hide);
+    if (btnEq) btnEq.style.display = 'inline-flex';
+    if (role === 'admin') {
+      if (navUsuarios)    navUsuarios.style.display    = 'flex';
+      if (navUsuariosSec) navUsuariosSec.style.display = 'block';
+      if (navEmpresas)    navEmpresas.style.display    = 'none';
+      allOps.forEach(show);
+      if (navActivos) navActivos.style.display = isActivos ? 'flex' : 'none';
+    } else if (role === 'tecnico') {
+      if (navUsuarios)    navUsuarios.style.display    = 'none';
+      if (navUsuariosSec) navUsuariosSec.style.display = 'none';
+      if (navEmpresas)    navEmpresas.style.display    = 'none';
+      allOps.forEach(show);
+      if (navActivos) navActivos.style.display = isActivos ? 'flex' : 'none';
+    } else if (role === 'operador') {
+      if (navUsuarios)    navUsuarios.style.display    = 'none';
+      if (navUsuariosSec) navUsuariosSec.style.display = 'none';
+      if (navEmpresas)    navEmpresas.style.display    = 'none';
+      ['nav-equipos','nav-calculo','nav-ia','nav-alertas',
+       'nav-historial','nav-mantenimiento','nav-reporte'].forEach(hide);
+      show('nav-fallas');
+      if (getTipoEmpresa()==='activos') show('nav-activos'); else hide('nav-activos');
+    } else {
+      if (navUsuarios)    navUsuarios.style.display    = 'none';
+      if (navUsuariosSec) navUsuariosSec.style.display = 'none';
+      if (navEmpresas)    navEmpresas.style.display    = 'none';
+      allOps.forEach(hide);
+    }
   }
 }
 

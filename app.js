@@ -546,10 +546,11 @@ function eliminarEmpresa(id) {
   empresas = empresas.filter(e=>e.id!==id);
   // Eliminar usuarios de la empresa
   usuarios = usuarios.filter(u=>u.empresaId!==id);
-  // Eliminar datos operativos (clave de localStorage)
+  // Eliminar datos operativos (claves de localStorage)
   try {
     const dataKey = STORAGE_KEY + '_emp_' + id;
     localStorage.removeItem(dataKey);
+    localStorage.removeItem('simpoe_activos_emp_' + id);
   } catch(e) {}
 
   nextEmpresaId = Math.max(...empresas.map(e=>e.id), 0) + 1;
@@ -845,18 +846,23 @@ async function eliminarUsuario(id) {
   }
   if (!confirm(`¿Eliminar al usuario "${u.nombre}"?\nEsta acción no se puede deshacer.`)) return;
 
-  try {
-    if (typeof sb !== 'undefined') {
+  if (typeof sb !== 'undefined') {
+    try {
       await sb.from('usuarios').delete().eq('email', u.email);
+    } catch (e) {
+      console.warn('SIMPOE: No se pudo eliminar de Supabase:', e.message);
     }
-    usuarios = usuarios.filter(x => x.id !== id);
-    recalcCounters();
-    renderUsuarios();
-    updateBadges();
-    toast('🗑️ Usuario Eliminado', u.nombre, 'red');
-  } catch (e) {
-    toast('⚠️ Error al eliminar', e.message, 'red');
   }
+  usuarios = usuarios.filter(x => x.id !== id);
+  guardarUsuarios();
+  recalcCounters();
+  renderUsuarios();
+  updateBadges();
+  toast('🗑️ Usuario Eliminado', u.nombre, 'red');
+}
+
+function recalcCounters() {
+  updateBadges();
 }
 
 // ══════════════════════════════════════════════

@@ -1272,7 +1272,7 @@ function registrarMantenimientoRapido() {
   if(!eq){toast('⚠️ Error','Selecciona un equipo primero','yellow');return;}
   if(!desc){toast('⚠️ Error','Escribe una descripción','yellow');return;}
   mantenimientos.push({id:nextMantId++,equipoId:eq.id,equipoNombre:eq.nombre,fecha:new Date().toISOString().slice(0,10),tipo,desc,tecnico:currentUser?currentUser.nombre:'—',costo:0});
-  eq.horasAcum=0;
+  if (tipo !== 'Correctivo') eq.horasAcum = 0;
   guardarDatos(); calcSeleccionar(); updateBadges();
   document.getElementById('quick-mant-desc').value='';
   toast('✔ Mantenimiento Rápido',`${eq.nombre} — ciclo reiniciado`,'green');
@@ -2059,7 +2059,7 @@ function updateMantPreview() {
     <div class="kv-row"><span class="kv-key">Horas Ajustadas (×${eq.factor})</span><span class="kv-val" style="color:var(--yellow2)">${c.horasAjustadas}h</span></div>
     <div class="kv-row"><span class="kv-key">Vida Restante</span><span class="kv-val" style="color:var(--green2)">${c.vidaRestante}h</span></div>
     <div style="margin-top:10px;padding:8px;background:rgba(34,197,94,.06);border-radius:var(--r);border-left:3px solid var(--green);font-size:.78rem;color:var(--text2)">
-      💡 Al registrar el mantenimiento, las horas acumuladas del equipo se reiniciarán a 0 y comenzará un nuevo ciclo.
+      💡 Al registrar un mantenimiento <strong>Preventivo o Predictivo</strong>, las horas acumuladas se reiniciarán a 0. Los mantenimientos <strong>Correctivos</strong> no reinician el ciclo.
     </div>`;
 }
 
@@ -2075,7 +2075,7 @@ function registrarMantenimiento() {
   if(!fecha){toast('⚠️ Error','Ingresa la fecha','yellow');return;}
   if(!desc){toast('⚠️ Error','Ingresa una descripción','yellow');return;}
   mantenimientos.push({id:nextMantId++,equipoId:eq.id,equipoNombre:eq.nombre,fecha,tipo,desc,tecnico:tecnico||currentUser?.nombre||'—',costo});
-  eq.horasAcum=0;
+  if (tipo !== 'Correctivo') eq.horasAcum = 0;
   guardarDatos();
   ['m-tecnico','m-desc','m-costo'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   document.getElementById('m-equipo').value='';
@@ -2432,7 +2432,6 @@ function abrirDetalle(id) {
 
 function irAGrafica(id) {
   goView('graficas',null);
-  setTimeout(()=>{ const s=null; if(s){s.value=id;} },80);
 }
 function irAMant(id) {
   goView('mantenimiento',document.getElementById('nav-mantenimiento'));
@@ -3241,20 +3240,31 @@ function handleFallaEvidenciaDrop(event) {
   });
 }
 
+let _docUid = 0;
+
 function addDocToList(file, listId, tempKey) {
   const reader = new FileReader();
   reader.onload = e => {
     window[tempKey] = window[tempKey] || [];
-    window[tempKey].push({ name:file.name, size:file.size, type:file.type, data:e.target.result });
+    const uid = ++_docUid;
+    window[tempKey].push({ _uid:uid, name:file.name, size:file.size, type:file.type, data:e.target.result });
     const el = document.getElementById(listId);
     if (!el) return;
     const item = document.createElement('div');
     item.className = 'doc-item';
-    const idx = window[tempKey].length - 1;
+    item.dataset.uid = uid;
     item.innerHTML = `<span style="font-size:1rem">${file.type.includes('pdf')?'📄':'📎'}</span>
       <span class="doc-name">${file.name}</span>
       <span style="font-size:.7rem;color:var(--text3)">${(file.size/1024).toFixed(0)}KB</span>
-      <button class="doc-remove" onclick="this.parentElement.remove();window['${tempKey}'].splice(${idx},1)">✕</button>`;
+      <button class="doc-remove" data-uid="${uid}">✕</button>`;
+    item.querySelector('.doc-remove').onclick = () => {
+      item.remove();
+      const arr = window[tempKey];
+      if (arr) {
+        const i = arr.findIndex(d => d._uid === uid);
+        if (i !== -1) arr.splice(i, 1);
+      }
+    };
     el.appendChild(item);
   };
   reader.readAsDataURL(file);
@@ -3264,14 +3274,15 @@ function addImgPreview(file, previewId, tempKey) {
   const reader = new FileReader();
   reader.onload = e => {
     window[tempKey] = window[tempKey] || [];
-    const idx = window[tempKey].length;
-    window[tempKey].push({ name:file.name, size:file.size, type:file.type, data:e.target.result });
+    const uid = ++_docUid;
+    window[tempKey].push({ _uid:uid, name:file.name, size:file.size, type:file.type, data:e.target.result });
     const el = document.getElementById(previewId);
     if (!el) return;
     const img = document.createElement('img');
     img.src = e.target.result;
     img.className = 'falla-img-thumb';
     img.title = file.name;
+    img.dataset.uid = uid;
     img.onclick = () => { const w=window.open(); w.document.write(`<img src="${e.target.result}" style="max-width:100%">`); };
     el.appendChild(img);
   };
@@ -3355,7 +3366,7 @@ function renderFallas() {
   const filtro = (document.getElementById('falla-filtro')||{}).value||'all';
   const pendientes = fallas.filter(f=>f.estado!=='resuelta').length;
   const alta       = fallas.filter(f=>f.urgencia==='alta').length;
-  const atendidas  = fallas.filter(f=>f.estado==='atendida').length;
+  const enProceso  = fallas.filter(f=>f.estado==='en_proceso').length;
 
   const statsEl = document.getElementById('falla-stats');
   if (statsEl) {
@@ -3369,8 +3380,8 @@ function renderFallas() {
         <div class="cls-stat-sub">Urgencia Alta</div>
       </div></div>
       <div class="card"><div class="card-body" style="text-align:center;padding:14px">
-        <div style="font-size:1.8rem;font-weight:800;font-family:var(--mono);color:var(--green2)">${atendidas}</div>
-        <div class="cls-stat-sub">Atendidas</div>
+        <div style="font-size:1.8rem;font-weight:800;font-family:var(--mono);color:var(--blue2)">${enProceso}</div>
+        <div class="cls-stat-sub">En Proceso</div>
       </div></div>`;
   }
 
@@ -3435,7 +3446,7 @@ function verFalla(id) {
   document.getElementById('ver-falla-body').innerHTML = `
     <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
       <span class="badge ${f.urgencia==='alta'?'b-crit':f.urgencia==='media'?'b-warn':'b-ok'}"><span class="badge-dot"></span>${urgIcon[f.urgencia]} Urgencia ${urgLabel[f.urgencia]}</span>
-      <span class="badge ${f.estado==='atendida'?'b-ok':'b-warn'}">${f.estado==='atendida'?'✅ Atendida':'⏳ Pendiente'}</span>
+      <span class="badge ${f.estado==='resuelta'?'b-ok':f.estado==='en_proceso'?'b-info':'b-warn'}">${f.estado==='resuelta'?'✅ Resuelta':f.estado==='en_proceso'?'🔧 En Proceso':'🔴 Reportada'}</span>
     </div>
     <div class="kv-row"><span class="kv-key">Equipo afectado</span><span class="kv-val">${f.equipoNombre}</span></div>
     <div class="kv-row"><span class="kv-key">Fecha de falla</span><span class="kv-val" style="font-family:var(--mono)">${fmtDate(f.fecha)}</span></div>

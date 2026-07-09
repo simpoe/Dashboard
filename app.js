@@ -360,10 +360,10 @@ function renderEmpresas() {
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
-            <div class="kv-row" class="cls-kv-compact"><span class="kv-key">NIT</span><span class="kv-val" style="font-family:var(--mono)">${emp.nit||'—'}</span></div>
-            <div class="kv-row" class="cls-kv-compact"><span class="kv-key">Usuarios</span><span class="kv-val">${empUsers.length}</span></div>
-            <div class="kv-row" class="cls-kv-compact"><span class="kv-key">Admins</span><span class="kv-val">${admins}</span></div>
-            <div class="kv-row" class="cls-kv-compact"><span class="kv-key">Técnicos</span><span class="kv-val">${tecnicos}</span></div>
+            <div class="kv-row cls-kv-compact"><span class="kv-key">NIT</span><span class="kv-val" style="font-family:var(--mono)">${emp.nit||'—'}</span></div>
+            <div class="kv-row cls-kv-compact"><span class="kv-key">Usuarios</span><span class="kv-val">${empUsers.length}</span></div>
+            <div class="kv-row cls-kv-compact"><span class="kv-key">Admins</span><span class="kv-val">${admins}</span></div>
+            <div class="kv-row cls-kv-compact"><span class="kv-key">Técnicos</span><span class="kv-val">${tecnicos}</span></div>
           </div>
           <div style="display:flex;gap:7px;flex-wrap:wrap">
             <button class="btn btn-ghost btn-xs" onclick="verEmpresa(${emp.id})">🔍 Ver detalle</button>
@@ -834,7 +834,9 @@ async function eliminarUsuario(id) {
   if (!confirm(`¿Eliminar al usuario "${u.nombre}"?\nEsta acción no se puede deshacer.`)) return;
 
   try {
-    await sb.from('usuarios').delete().eq('id', u.id);
+    if (typeof sb !== 'undefined') {
+      await sb.from('usuarios').delete().eq('email', u.email);
+    }
     usuarios = usuarios.filter(x => x.id !== id);
     recalcCounters();
     renderUsuarios();

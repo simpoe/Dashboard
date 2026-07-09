@@ -155,6 +155,14 @@ function iaAnalizar(eq) {
   const diasStr    = c.diasMantenimiento <= 0 ? 'vencido' : `en ${c.diasMantenimiento} días`;
   const hrsDesc    = eq.horasAcum > eq.horasRec*0.9 ? 'casi agotadas' : eq.horasAcum > eq.horasRec*0.6 ? 'en nivel medio-alto' : 'dentro del rango seguro';
 
+  // ── Razones del estado de atención ───────────────────
+  const razon = [];
+  if (c.nFallas > 0) razon.push(`presenta ${c.nFallas} falla(s) registrada(s)`);
+  if (eq.horasAcum > eq.horasRec * 0.7) razon.push('ha superado el 70% del ciclo de vida útil');
+  if (c.IMP < 50) razon.push(`el PMI es solo ${c.IMP}% (objetivo TPM: ≥80%)`);
+  if (c.confiabilidad < 70) razon.push(`la confiabilidad R(t) es ${c.confiabilidad}%`);
+  if (razon.length === 0) razon.push('requiere intervención programada');
+
   // 1 ── Estado de salud con razonamiento ────────────────
   if (c.saludPct <= 30) {
     recs.push({

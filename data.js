@@ -514,7 +514,7 @@ async function logoutFromSupabase() {
  */
 async function initSession() {
   try {
-    if (window.sb) {
+    if (typeof sb !== 'undefined') {
       const { data } = await sb.auth.getSession();
       if (data?.session?.user) {
         const u    = data.session.user;

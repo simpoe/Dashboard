@@ -567,17 +567,20 @@ create table if not exists sync_data (
 
 alter table sync_data enable row level security;
 
-create policy if not exists "Usuarios autenticados pueden leer sync_data"
+drop policy if exists "Usuarios autenticados pueden leer sync_data" on sync_data;
+create policy "Usuarios autenticados pueden leer sync_data"
   on sync_data for select
   to authenticated
   using (true);
 
-create policy if not exists "Usuarios autenticados pueden insertar sync_data"
+drop policy if exists "Usuarios autenticados pueden insertar sync_data" on sync_data;
+create policy "Usuarios autenticados pueden insertar sync_data"
   on sync_data for insert
   to authenticated
   with check (true);
 
-create policy if not exists "Usuarios autenticados pueden actualizar sync_data"
+drop policy if exists "Usuarios autenticados pueden actualizar sync_data" on sync_data;
+create policy "Usuarios autenticados pueden actualizar sync_data"
   on sync_data for update
   to authenticated
   using (true);

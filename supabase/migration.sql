@@ -550,6 +550,39 @@ left join fallas fl on fl.empresa_id = emp.id
 group by emp.id, emp.nombre, emp.tipo;
 
 -- ══════════════════════════════════════════════════════════
+--  SINCRONIZACIÓN (sync_data)
+-- ══════════════════════════════════════════════════════════
+create table if not exists sync_data (
+  empresa_id bigint primary key,
+  equipos jsonb not null default '[]',
+  mantenimientos jsonb not null default '[]',
+  fallas jsonb not null default '[]',
+  activos jsonb not null default '[]',
+  next_eq_id int not null default 1,
+  next_mant_id int not null default 1,
+  next_falla_id int not null default 1,
+  next_activo_id int not null default 1,
+  updated_at timestamptz not null default now()
+);
+
+alter table sync_data enable row level security;
+
+create policy if not exists "Usuarios autenticados pueden leer sync_data"
+  on sync_data for select
+  to authenticated
+  using (true);
+
+create policy if not exists "Usuarios autenticados pueden insertar sync_data"
+  on sync_data for insert
+  to authenticated
+  with check (true);
+
+create policy if not exists "Usuarios autenticados pueden actualizar sync_data"
+  on sync_data for update
+  to authenticated
+  using (true);
+
+-- ══════════════════════════════════════════════════════════
 --  SEED DATA
 -- ══════════════════════════════════════════════════════════
 

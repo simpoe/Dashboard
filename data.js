@@ -101,13 +101,111 @@ function guardarDatos() {
       clearTimeout(ind._timer);
       ind._timer = setTimeout(()=>{ ind.style.display='none'; }, 2500);
     }
+    syncToSupabase();
   } catch(e) { console.warn('No se pudo guardar:', e); }
 }
 
-function cargarDatos() {
+// ── Sincronización con Supabase ──────────────────────────────────────
+function mostrarSyncEstado(texto, color) {
+  const el = document.getElementById('tb-sync');
+  const tx = document.getElementById('tb-sync-text');
+  if (!el || !tx) return;
+  el.style.display = 'flex';
+  el.style.color = color || 'var(--blue2)';
+  tx.textContent = texto;
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+async function syncToSupabase() {
+  if (typeof sb === 'undefined' || !empresaActual?.id) return;
+  try {
+    const payload = {
+      empresa_id: empresaActual.id,
+      equipos,
+      mantenimientos,
+      fallas,
+      next_eq_id: nextEqId,
+      next_mant_id: nextMantId,
+      next_falla_id: nextFallaId
+    };
+    const { error } = await sb.from('sync_data').upsert(payload, { onConflict: 'empresa_id' });
+    if (error) throw error;
+    mostrarSyncEstado('☁️ En la nube', 'var(--green2)');
+  } catch (e) {
+    console.warn('SIMPOE: Error sync a Supabase:', e.message);
+    mostrarSyncEstado('☁️ Sin conexión', 'var(--yellow2)');
+  }
+}
+
+async function syncActivosToSupabase() {
+  if (typeof sb === 'undefined' || !empresaActual?.id) return;
+  try {
+    const { data: existing } = await sb.from('sync_data').select('*').eq('empresa_id', empresaActual.id).single();
+    const payload = {
+      empresa_id: empresaActual.id,
+      equipos: existing?.equipos || equipos,
+      mantenimientos: existing?.mantenimientos || mantenimientos,
+      fallas: existing?.fallas || fallas,
+      activos: activosEmpresariales,
+      next_eq_id: existing?.next_eq_id || nextEqId,
+      next_mant_id: existing?.next_mant_id || nextMantId,
+      next_falla_id: existing?.next_falla_id || nextFallaId,
+      next_activo_id: nextActivoId
+    };
+    const { error } = await sb.from('sync_data').upsert(payload, { onConflict: 'empresa_id' });
+    if (error) throw error;
+  } catch (e) {
+    console.warn('SIMPOE: Error sync activos a Supabase:', e.message);
+  }
+}
+
+async function loadFromSupabase() {
+  if (typeof sb === 'undefined' || !empresaActual?.id) return false;
+  try {
+    const { data, error } = await sb.from('sync_data').select('*').eq('empresa_id', empresaActual.id).maybeSingle();
+    if (error) throw error;
+    if (!data) return false;
+    equipos = data.equipos || [];
+    mantenimientos = data.mantenimientos || [];
+    fallas = data.fallas || [];
+    nextEqId = data.next_eq_id || (equipos.length ? Math.max(...equipos.map(e=>e.id)) + 1 : 1);
+    nextMantId = data.next_mant_id || (mantenimientos.length ? Math.max(...mantenimientos.map(m=>m.id)) + 1 : 1);
+    nextFallaId = data.next_falla_id || (fallas.length ? Math.max(...fallas.map(f=>f.id)) + 1 : 1);
+    mostrarSyncEstado('☁️ Cargado de la nube', 'var(--blue2)');
+    return true;
+  } catch (e) {
+    console.warn('SIMPOE: Error cargando de Supabase:', e.message);
+    return false;
+  }
+}
+
+async function loadActivosFromSupabase() {
+  if (typeof sb === 'undefined' || !empresaActual?.id) return false;
+  try {
+    const { data, error } = await sb.from('sync_data').select('activos, next_activo_id').eq('empresa_id', empresaActual.id).maybeSingle();
+    if (error) throw error;
+    if (!data?.activos) return false;
+    activosEmpresariales = data.activos;
+    nextActivoId = data.next_activo_id || (activosEmpresariales.length ? Math.max(...activosEmpresariales.map(a=>a.id)) + 1 : 1);
+    return true;
+  } catch (e) {
+    console.warn('SIMPOE: Error cargando activos de Supabase:', e.message);
+    return false;
+  }
+}
+
+async function cargarDatos() {
   try {
     const raw = localStorage.getItem(getEmpresaKey());
-    if(!raw) { seedDemoDataForEmpresa(); return true; }
+    if(!raw) {
+      const loaded = await loadFromSupabase();
+      if (loaded) {
+        guardarDatos();
+        return true;
+      }
+      seedDemoDataForEmpresa(); return true;
+    }
     const d = JSON.parse(raw);
     if(d.equipos && Array.isArray(d.equipos)) {
       equipos        = d.equipos;
@@ -282,10 +380,13 @@ function getActivosKey() {
 }
 
 function guardarActivos() {
-  try { localStorage.setItem(getActivosKey(), JSON.stringify({activosEmpresariales, nextActivoId})); } catch(e){}
+  try {
+    localStorage.setItem(getActivosKey(), JSON.stringify({activosEmpresariales, nextActivoId}));
+    syncActivosToSupabase();
+  } catch(e){}
 }
 
-function cargarActivos() {
+async function cargarActivos() {
   try {
     const raw = localStorage.getItem(getActivosKey());
     if (raw) {
@@ -294,6 +395,10 @@ function cargarActivos() {
       nextActivoId = d.nextActivoId || (activosEmpresariales.length ? Math.max(...activosEmpresariales.map(a=>a.id))+1 : 1);
       return true;
     }
+  } catch(e){}
+  try {
+    const loaded = await loadActivosFromSupabase();
+    if (loaded) { guardarActivos(); return true; }
   } catch(e){}
   if (getTipoEmpresa() === 'activos') {
     seedDemoActivos();
@@ -447,7 +552,7 @@ function exportarActivosCSV() {
 async function loginWithSupabase(email, pass) {
   // ── 1. Intentar con Supabase ──────────────────────────────
   try {
-    if (window.sb) {
+    if (typeof sb !== 'undefined') {
       const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
       if (!error && data?.user) {
         const meta = data.user.user_metadata || {};
@@ -460,7 +565,7 @@ async function loginWithSupabase(email, pass) {
           empresaId: empresaId,
         };
         empresaActual = empresaId ? (empresas.find(e => e.id === empresaId) || null) : null;
-        cargarDatos();
+        await cargarDatos();
         return;
       }
       // Supabase devolvió error de credenciales explícito → no hacer fallback
@@ -492,7 +597,7 @@ async function loginWithSupabase(email, pass) {
     empresaId: found.empresaId ?? null,
   };
   empresaActual = found.empresaId ? (empresas.find(e => e.id === found.empresaId) || null) : null;
-  cargarDatos();
+  await cargarDatos();
 }
 
 /**
@@ -500,7 +605,7 @@ async function loginWithSupabase(email, pass) {
  */
 async function logoutFromSupabase() {
   try {
-    if (window.sb) await sb.auth.signOut();
+    if (typeof sb !== 'undefined') await sb.auth.signOut();
   } catch (e) {
     console.warn('SIMPOE: Error cerrando sesión en Supabase.', e);
   }
@@ -528,7 +633,7 @@ async function initSession() {
           empresaId: empresaId,
         };
         empresaActual = empresaId ? (empresas.find(e => e.id === empresaId) || null) : null;
-        cargarDatos();
+        await cargarDatos();
         return true;
       }
     }

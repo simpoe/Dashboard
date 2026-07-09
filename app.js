@@ -868,6 +868,14 @@ function recalcCounters() {
   updateBadges();
 }
 
+function syncNow() {
+  if (!currentUser) { toast('⚠️ Aviso', 'Inicia sesión para sincronizar', 'yellow'); return; }
+  if (typeof sb === 'undefined') { toast('⚠️ Sin conexión', 'Supabase no está disponible', 'yellow'); return; }
+  syncToSupabase();
+  syncActivosToSupabase();
+  toast('☁️ Sincronizando', 'Subiendo datos a la nube...', 'blue');
+}
+
 // ══════════════════════════════════════════════
 //  CENTRO DE CONTROL OPERACIONAL — MINIMALISTA
 // ══════════════════════════════════════════════
@@ -3798,8 +3806,8 @@ const SECTOR_CONFIG = {
 //  INIT — carga datos guardados o usa demo
 // ══════════════════════════════════════════════
 
-(function init() {
-  const loaded = cargarDatos();
+(async function init() {
+  const loaded = await cargarDatos();
   if (loaded) {
     console.log(`SIMPOE: ${equipos.length} equipos y ${mantenimientos.length} mantenimientos cargados desde almacenamiento local.`);
   }

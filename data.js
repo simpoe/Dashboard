@@ -214,7 +214,9 @@ async function cargarDatos() {
         guardarDatos();
         return true;
       }
-      seedDemoDataForEmpresa(); return true;
+      equipos = []; mantenimientos = []; fallas = [];
+      nextEqId = 1; nextMantId = 1; nextFallaId = 1;
+      guardarDatos(); return true;
     }
     const d = JSON.parse(raw);
     if(d.equipos && Array.isArray(d.equipos)) {
@@ -226,8 +228,9 @@ async function cargarDatos() {
       nextFallaId    = d.nextFallaId || (fallas.length ? Math.max(...fallas.map(f=>f.id)) + 1 : 1);
       return true;
     }
-    seedDemoDataForEmpresa();
-    return true;
+    equipos = []; mantenimientos = []; fallas = [];
+    nextEqId = 1; nextMantId = 1; nextFallaId = 1;
+    guardarDatos(); return true;
   } catch(e) { console.warn('No se pudo cargar datos:', e); }
   return false;
 }

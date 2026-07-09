@@ -120,6 +120,8 @@ function mostrarSyncEstado(texto, color) {
 async function syncToSupabase() {
   if (typeof sb === 'undefined' || !empresaActual?.id) return;
   try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { console.warn('SIMPOE: Sin sesión de Supabase, no se puede sync'); return; }
     const payload = {
       empresa_id: empresaActual.id,
       equipos,
@@ -131,6 +133,7 @@ async function syncToSupabase() {
     };
     const { error } = await sb.from('sync_data').upsert(payload, { onConflict: 'empresa_id' });
     if (error) throw error;
+    console.log('SIMPOE: Datos sincronizados con la nube');
     mostrarSyncEstado('☁️ En la nube', 'var(--green2)');
   } catch (e) {
     console.warn('SIMPOE: Error sync a Supabase:', e.message);
@@ -141,7 +144,9 @@ async function syncToSupabase() {
 async function syncActivosToSupabase() {
   if (typeof sb === 'undefined' || !empresaActual?.id) return;
   try {
-    const { data: existing } = await sb.from('sync_data').select('*').eq('empresa_id', empresaActual.id).single();
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    const { data: existing } = await sb.from('sync_data').select('*').eq('empresa_id', empresaActual.id).maybeSingle();
     const payload = {
       empresa_id: empresaActual.id,
       equipos: existing?.equipos || equipos,
@@ -163,6 +168,8 @@ async function syncActivosToSupabase() {
 async function loadFromSupabase() {
   if (typeof sb === 'undefined' || !empresaActual?.id) return false;
   try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return false;
     const { data, error } = await sb.from('sync_data').select('*').eq('empresa_id', empresaActual.id).maybeSingle();
     if (error) throw error;
     if (!data) return false;
@@ -183,6 +190,8 @@ async function loadFromSupabase() {
 async function loadActivosFromSupabase() {
   if (typeof sb === 'undefined' || !empresaActual?.id) return false;
   try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return false;
     const { data, error } = await sb.from('sync_data').select('activos, next_activo_id').eq('empresa_id', empresaActual.id).maybeSingle();
     if (error) throw error;
     if (!data?.activos) return false;

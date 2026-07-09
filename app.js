@@ -129,8 +129,8 @@ function aplicarRol(role) {
     if (navUsuarios)    navUsuarios.style.display    = 'flex';
     if (navUsuariosSec) navUsuariosSec.style.display = 'block';
     if (navEmpresas)    navEmpresas.style.display    = 'flex';
-    allOps.forEach(show);
-    if (navActivos) navActivos.style.display = isActivos ? 'flex' : 'none';
+    allOps.forEach(hide);
+    if (navActivos) navActivos.style.display = 'none';
   } else if (role === 'admin') {
     if (navUsuarios)    navUsuarios.style.display    = 'flex';
     if (navUsuariosSec) navUsuariosSec.style.display = 'block';
@@ -170,6 +170,9 @@ function goViewSeguro(view, el) {
   }
   if (role === 'operador' && !['dashboard','fallas'].includes(view)) {
     toast('🔒 Acceso restringido', 'Tu rol solo permite reportar fallas de equipos', 'red'); return;
+  }
+  if (role === 'superadmin' && !['dashboard','empresas','usuarios'].includes(view)) {
+    toast('🔒 Solo Administración', 'El Super Admin no tiene acceso a funciones operativas', 'red'); return;
   }
   goView(view, el);
 }
@@ -878,7 +881,104 @@ function toggleDashDetalle(btn) {
   arrow.textContent = open ? '▴' : '▾';
 }
 
+function renderSuperAdminDashboard() {
+  const dashTitle = document.getElementById('dash-title');
+  if (dashTitle) dashTitle.innerHTML = `<i data-lucide="shield" style="width:22px;height:22px;vertical-align:middle;"></i> 🛡 Panel de Control — Super Admin`;
+
+  const totalEmpresas = empresas.length;
+  const activas = empresas.filter(e => e.activa).length;
+  const admins = usuarios.filter(u => u.role === 'admin').length;
+  const tecnicos = usuarios.filter(u => u.role === 'tecnico').length;
+  const operadores = usuarios.filter(u => u.role === 'operador').length;
+  const totalUsuarios = admins + tecnicos + operadores;
+
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card blue">
+      <div class="stat-icon">🏢</div>
+      <div class="stat-value">${totalEmpresas}</div>
+      <div class="stat-label">Empresas Registradas</div>
+      <div class="stat-sub">${activas} activas</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-icon">👥</div>
+      <div class="stat-value">${totalUsuarios}</div>
+      <div class="stat-label">Usuarios Totales</div>
+      <div class="stat-sub">Sin contar Super Admin</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-icon">✅</div>
+      <div class="stat-value">${activas}</div>
+      <div class="stat-label">Empresas Activas</div>
+      <div class="stat-sub">Con acceso al sistema</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon">🔒</div>
+      <div class="stat-value">${totalEmpresas - activas}</div>
+      <div class="stat-label">Desactivadas</div>
+      <div class="stat-sub">Sin acceso al sistema</div>
+    </div>`;
+
+  document.getElementById('dash-mensaje-principal').innerHTML = `
+    <div style="background:rgba(14,165,233,.06);border:1px solid var(--blue);border-radius:var(--r2);padding:16px 20px;display:flex;gap:14px;align-items:center">
+      <span style="font-size:1.6rem">🛡️</span>
+      <div>
+        <div style="font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:3px">Panel de Administración Global</div>
+        <div style="font-size:.84rem;color:var(--text2)">Bienvenido, <strong>${currentUser?.nombre || 'Super Admin'}</strong>. Aquí puedes administrar empresas y usuarios del sistema.</div>
+      </div>
+    </div>`;
+
+  const alertasEl = document.getElementById('dash-alerts');
+  if (alertasEl) {
+    alertasEl.innerHTML = `
+      <div style="padding:12px 0">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span style="font-weight:600;font-size:.84rem">🏢 Empresas</span>
+          <span style="font-weight:800;font-family:var(--mono);color:var(--blue2)">${totalEmpresas}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span style="font-weight:600;font-size:.84rem">👑 Administradores</span>
+          <span style="font-weight:800;font-family:var(--mono);color:var(--purple2)">${admins}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span style="font-weight:600;font-size:.84rem">🔧 Técnicos</span>
+          <span style="font-weight:800;font-family:var(--mono);color:var(--yellow2)">${tecnicos}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span style="font-weight:600;font-size:.84rem">⚠️ Operadores</span>
+          <span style="font-weight:800;font-family:var(--mono);color:var(--orange2)">${operadores}</span>
+        </div>
+      </div>`;
+  }
+
+  const proximosEl = document.getElementById('dash-proximos');
+  if (proximosEl) {
+    proximosEl.innerHTML = empresas.length
+      ? empresas.map(emp => {
+          const empUsers = usuarios.filter(u => u.empresaId === emp.id);
+          return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+              <div style="min-width:0;flex:1">
+                <div style="font-weight:700;font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${emp.nombre}</div>
+                <div style="font-size:.73rem;color:var(--text3)">${emp.ciudad || '—'} · ${emp.responsable || '—'}</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;margin-left:10px">
+                <div style="font-weight:800;font-family:var(--mono);color:var(--blue2);font-size:.92rem">${empUsers.length}</div>
+                <div style="font-size:.68rem;color:var(--text3)">usuarios</div>
+              </div>
+            </div>`;
+        }).join('')
+      : `<div style="padding:16px 0;text-align:center;color:var(--text3);font-size:.83rem">Sin empresas registradas aún</div>`;
+  }
+
+  const ac = document.getElementById('dash-alert-count');
+  if (ac) { ac.style.display = 'none'; ac.textContent = '0'; }
+}
+
 function renderDashboard() {
+  if (currentUser?.role === 'superadmin') {
+    renderSuperAdminDashboard();
+    return;
+  }
   const all  = equipos.map(e=>({eq:e, c:calcEquipo(e)}));
   const ok   = all.filter(x=>x.c.estado==='ok').length;
   const warn = all.filter(x=>x.c.estado==='warn').length;

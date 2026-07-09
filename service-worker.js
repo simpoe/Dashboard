@@ -1,4 +1,4 @@
-const CACHE = 'simpoe-v1';
+const CACHE = 'simpoe-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -6,12 +6,12 @@ const ASSETS = [
   './icons.js',
   './app.js',
   './calculos.js',
-  './data.js',
+  './data.js?v=20260709',
   './lib/supabase.js',
   './simpoe-icon.svg',
   './manifest.json',
   'https://unpkg.com/lucide@latest',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Code+Pro:wght@400;500;700&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'

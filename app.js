@@ -837,7 +837,7 @@ async function resetPassword(id) {
   }
 }
 
-async function eliminarUsuario(id) {
+function eliminarUsuario(id) {
   if (!currentUser || !['admin','superadmin'].includes(currentUser.role)) return;
   const u = usuarios.find(x => x.id === id);
   if (!u) return;
@@ -849,13 +849,6 @@ async function eliminarUsuario(id) {
   }
   if (!confirm(`¿Eliminar al usuario "${u.nombre}"?\nEsta acción no se puede deshacer.`)) return;
 
-  if (typeof sb !== 'undefined') {
-    try {
-      await sb.from('usuarios').delete().eq('email', u.email);
-    } catch (e) {
-      console.warn('SIMPOE: No se pudo eliminar de Supabase:', e.message);
-    }
-  }
   usuarios = usuarios.filter(x => x.id !== id);
   guardarUsuarios();
   recalcCounters();

@@ -118,7 +118,8 @@ window.mostrarSyncEstado = function mostrarSyncEstado(texto, color) {
 }
 
 window.syncToSupabase = async function syncToSupabase() {
-  if (typeof sb === 'undefined' || !empresaActual?.id) return;
+  console.log('syncToSupabase called', {sb: typeof sb, empresaId: empresaActual?.id});
+  if (typeof sb === 'undefined' || !empresaActual?.id) { console.warn('syncToSupabase: early return', {sb: typeof sb, empresaId: empresaActual?.id}); return; }
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) { console.warn('SIMPOE: Sin sesión de Supabase, no se puede sync'); return; }

@@ -566,7 +566,11 @@ async function loginWithSupabase(email, pass) {
       const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
       if (!error && data?.user) {
         const meta = data.user.user_metadata || {};
-        const empresaId = meta.empresa_id ?? null;
+        let empresaId = meta.empresa_id ?? null;
+        if (empresaId === null) {
+          const localUser = usuarios.find(u => u.email === email);
+          if (localUser) empresaId = localUser.empresaId ?? null;
+        }
         currentUser = {
           id:        data.user.id,
           email:     data.user.email,

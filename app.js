@@ -417,11 +417,13 @@ async function crearEmpresa() {
   if (!adminPass || adminPass.length < 4) return error('⚠️ La contraseña debe tener al menos 4 caracteres.');
   if (adminPass !== adminPass2)           return error('⚠️ Las contraseñas no coinciden.');
 
+  const newEmpresaId = nextEmpresaId++;
+
   // Crear auth user en Supabase
   try {
     const { data: authData, error: authErr } = await sb.auth.signUp({
       email: adminEmail, password: adminPass,
-      options: { data: { nombre: adminNombre, role: 'admin' } }
+      options: { data: { nombre: adminNombre, role: 'admin', empresa_id: newEmpresaId } }
     });
     if (authErr) {
       if (authErr.message?.includes('security') || authErr.status === 429) {
@@ -433,7 +435,6 @@ async function crearEmpresa() {
     return error('⚠️ Error de conexión con Supabase. Verifica que el proyecto esté activo.');
   }
 
-  const newEmpresaId = nextEmpresaId++;
   empresas.push({
     id: newEmpresaId, nombre, nit, responsable, ciudad, pais,
     tipo, telefono: tel, email: emailEmp, color,

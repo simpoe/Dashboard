@@ -885,7 +885,7 @@ function toggleDashDetalle(btn) {
 
 function renderSuperAdminDashboard() {
   const dashTitle = document.getElementById('dash-title');
-  if (dashTitle) dashTitle.innerHTML = `<i data-lucide="shield" style="width:22px;height:22px;vertical-align:middle;"></i> 🛡 Panel de Control — Super Admin`;
+  if (dashTitle) dashTitle.innerHTML = `<i data-lucide="shield" style="width:22px;height:22px;vertical-align:middle;"></i> Panel de Control — Super Admin`;
 
   const totalEmpresas = empresas.length;
   const activas = empresas.filter(e => e.activa).length;
@@ -1002,7 +1002,7 @@ function renderDashboard() {
   const tipo = getTipoEmpresa();
   const cfg  = SECTOR_CONFIG[tipo];
   const dashTitle = document.getElementById('dash-title');
-  if (dashTitle && cfg) dashTitle.innerHTML = `<i data-lucide="sliders" style="width:22px;height:22px;vertical-align:middle;"></i> 🎛 Centro de Control — ${cfg.nombre}`;
+  if (dashTitle && cfg) dashTitle.innerHTML = `<i data-lucide="sliders" style="width:22px;height:22px;vertical-align:middle;"></i> Centro de Control — ${cfg.nombre}`;
 
   // ── UN solo mensaje — el más importante ───────────────────
   const msgs   = generarMensajesSistema();

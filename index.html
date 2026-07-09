@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="theme-color" content="#080b0d">
+<meta name="theme-color" content="#121E6C">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="SIMPOE">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="simpoe-icon.svg">
 <link rel="apple-touch-icon" href="simpoe-icon.svg">
 <title>SIMPOE — Sistema Inteligente de Mantenimiento Predictivo</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Source+Code+Pro:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Code+Pro:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="stylesheet" href="styles.css">
@@ -55,6 +55,7 @@
 
 <!-- ══ TOPBAR ══ -->
 <div class="topbar">
+  <button class="hamburger" onclick="toggleSidebar()" aria-label="Menú"><i data-lucide="menu"></i></button>
   <div class="brand brand-logo">
     <div class="brand-icon"><i data-lucide="settings"></i></div>
     <div>
@@ -82,6 +83,7 @@
 
 <div class="layout">
 <!-- ══ SIDEBAR ══ -->
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 <nav class="sidebar">
   <div class="sidebar-inner">
   <div class="nav-sec">Principal</div>
@@ -267,8 +269,8 @@
     <div class="card" style="margin-bottom:16px" id="calc-card-detalle"></div>
 
     <!-- Fórmulas explicativas -->
-    <div style="background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 20px;margin-bottom:16px">
-      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--blue2);margin-bottom:12px">📐 Fórmulas Aplicadas</div>
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:10px 16px;margin-bottom:12px;box-shadow:var(--shadow)">
+      <div style="font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--deep-blue);margin-bottom:6px">📐 Fórmulas Aplicadas</div>
       <div class="rg-2" id="calc-formulas">
         <!-- filled by calcSeleccionar -->
       </div>
@@ -403,20 +405,20 @@
     <div style="display:flex;flex-direction:column;gap:13px">
       <div class="card"><div class="card-head"><span class="card-title">📋 Estado Actual</span></div><div class="card-body" id="mant-preview"><div class="empty"><div class="empty-icon">⚙️</div><p>Selecciona un equipo</p></div></div></div>
       <div class="card">
-        <div class="card-head"><span class="card-title">ℹ️ Guía de Tipos</span></div>
-        <div class="card-body">
-          <div style="display:flex;flex-direction:column;gap:9px;font-size:.8rem">
-            <div style="padding:9px;background:rgba(34,197,94,.06);border-radius:var(--r);border-left:3px solid var(--green)">
-              <div style="font-weight:700;color:var(--green2);margin-bottom:2px">🟢 Preventivo</div>
-              <div style="color:var(--text2)">Mantenimiento programado según horas de operación. Evita fallas antes de que ocurran. <strong style="color:var(--green)">~3.2× más económico que el correctivo.</strong></div>
+        <div class="card-head" style="padding:6px 14px"><span class="card-title">ℹ️ Guía de Tipos</span></div>
+        <div class="card-body" style="padding:8px 14px">
+          <div style="display:flex;flex-direction:column;gap:5px;font-size:.74rem">
+            <div style="padding:6px 8px;background:rgba(4,116,129,.06);border-radius:6px;border-left:3px solid #047481">
+              <div style="font-weight:700;color:#047481;margin-bottom:1px">🟢 Preventivo</div>
+              <div style="color:var(--text-gray)">Programado por horas de operación. ~3.2× más económico que correctivo.</div>
             </div>
-            <div style="padding:9px;background:rgba(239,68,68,.06);border-radius:var(--r);border-left:3px solid var(--red)">
-              <div style="font-weight:700;color:var(--red2);margin-bottom:2px">🔴 Correctivo</div>
-              <div style="color:var(--text2)">Se realiza después de una falla. Mayor costo por mano de obra urgente, repuestos de emergencia y tiempo muerto de producción.</div>
+            <div style="padding:6px 8px;background:rgba(238,66,78,.06);border-radius:6px;border-left:3px solid var(--vibrant-red)">
+              <div style="font-weight:700;color:var(--vibrant-red);margin-bottom:1px">🔴 Correctivo</div>
+              <div style="color:var(--text-gray)">Post-falla: mayor costo por urgencia, repuestos y tiempo muerto.</div>
             </div>
-            <div style="padding:9px;background:rgba(14,165,233,.06);border-radius:var(--r);border-left:3px solid var(--blue)">
-              <div style="font-weight:700;color:var(--blue2);margin-bottom:2px">🔵 Predictivo</div>
-              <div style="color:var(--text2)">Basado en análisis de condición (vibración, temperatura, presión). Anticipa fallas con mayor precisión que el preventivo.</div>
+            <div style="padding:6px 8px;background:rgba(18,30,108,.06);border-radius:6px;border-left:3px solid var(--deep-blue)">
+              <div style="font-weight:700;color:var(--deep-blue);margin-bottom:1px">🔵 Predictivo</div>
+              <div style="color:var(--text-gray)">Basado en condición (vibración, temperatura). Anticipa fallas con precisión.</div>
             </div>
           </div>
         </div>
@@ -521,12 +523,9 @@
       <button class="btn btn-primary btn-sm" onclick="openModal('modal-nueva-empresa')">+ Nueva Empresa</button>
     </div>
   </div>
-  <div style="background:linear-gradient(135deg,rgba(14,165,233,.1),rgba(14,165,233,.08));border:1px solid rgba(14,165,233,.25);border-radius:var(--r2);padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
-    <span style="font-size:1.4rem">🌐</span>
-    <div>
-      <div style="font-weight:700;color:var(--purple2);font-size:.9rem">Vista Global — Super Administrador</div>
-      <div style="font-size:.79rem;color:var(--text2);margin-top:2px">Esta sección es invisible para todos los demás roles. Aquí se crean y gestionan todas las empresas que usan SIMPOE.</div>
-    </div>
+  <div style="background:linear-gradient(135deg,rgba(18,30,108,.06),rgba(145,159,220,.08));border:1px solid rgba(18,30,108,.15);border-radius:12px;padding:8px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+    <span style="font-size:1rem">🌐</span>
+    <div style="font-size:.76rem;color:var(--text-gray);line-height:1.3">Solo Super Admin — crea y gestiona empresas del sistema.</div>
   </div>
   <div class="stat-grid" style="margin-bottom:14px" id="emp-stats"></div>
   <div id="emp-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:12px"></div>
@@ -545,12 +544,9 @@
   </div>
 
   <!-- Acceso restringido banner -->
-  <div style="background:linear-gradient(135deg,rgba(14,165,233,.1),rgba(14,165,233,.08));border:1px solid rgba(14,165,233,.25);border-radius:var(--r2);padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
-    <span style="font-size:1.4rem">🔐</span>
-    <div>
-      <div style="font-weight:700;color:var(--purple2);font-size:.9rem">Sección Restringida — Solo Administrador</div>
-      <div style="font-size:.79rem;color:var(--text2);margin-top:2px">Esta sección es invisible para usuarios con rol Técnico. Solo el administrador puede crear y gestionar usuarios del sistema.</div>
-    </div>
+  <div style="background:linear-gradient(135deg,rgba(18,30,108,.06),rgba(145,159,220,.08));border:1px solid rgba(18,30,108,.15);border-radius:12px;padding:8px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+    <span style="font-size:1rem">🔐</span>
+    <div style="font-size:.76rem;color:var(--text-gray);line-height:1.3">Solo Administrador — los técnicos no ven esta sección.</div>
   </div>
 
   <!-- Stats de usuarios -->
@@ -1019,8 +1015,8 @@
     </div>
     <div class="modal-body">
       <!-- Solo admin puede ver este modal -->
-      <div style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2);border-radius:var(--r);padding:10px 13px;margin-bottom:16px;font-size:.8rem;color:var(--purple2);">
-        🔐 Estás creando un usuario como <strong id="modal-usr-creador">Administrador</strong>. Quedará registrado como el creador de esta cuenta.
+      <div style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:8px;padding:6px 10px;margin-bottom:12px;font-size:.74rem;color:var(--deep-blue)">
+        🔐 Creado por <strong id="modal-usr-creador">Administrador</strong>
       </div>
       <div class="form-grid">
         <div class="fg form-full">

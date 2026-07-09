@@ -263,11 +263,18 @@ setInterval(updateClock,1000); updateClock();
 // ══════════════════════════════════════════════
 //  NAVIGATION
 // ══════════════════════════════════════════════
+function toggleSidebar() {
+  const s = document.querySelector('.sidebar'), o = document.querySelector('.sidebar-overlay');
+  s.classList.toggle('open'); o.classList.toggle('open');
+}
+
 function goView(view, el) {
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
   el.classList.add('active');
+  const s = document.querySelector('.sidebar');
+  if (s.classList.contains('open')) { s.classList.remove('open'); document.querySelector('.sidebar-overlay').classList.remove('open'); }
   const renders = {
     dashboard:renderDashboard, equipos:renderEquipos, calculo:renderCalculo, ia:renderIA,
     alertas:renderAlertas, historial:renderHistorial, mantenimiento:renderMantenimientoView,
@@ -921,12 +928,9 @@ function renderSuperAdminDashboard() {
     </div>`;
 
   document.getElementById('dash-mensaje-principal').innerHTML = `
-    <div style="background:rgba(14,165,233,.06);border:1px solid var(--blue);border-radius:var(--r2);padding:16px 20px;display:flex;gap:14px;align-items:center">
-      <span style="font-size:1.6rem">🛡️</span>
-      <div>
-        <div style="font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:3px">Panel de Administración Global</div>
-        <div style="font-size:.84rem;color:var(--text2)">Bienvenido, <strong>${currentUser?.nombre || 'Super Admin'}</strong>. Aquí puedes administrar empresas y usuarios del sistema.</div>
-      </div>
+    <div style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:12px;padding:8px 14px;display:flex;gap:8px;align-items:center">
+      <span style="font-size:1.1rem">🛡️</span>
+      <div style="font-size:.78rem;color:var(--text-gray);line-height:1.3">Bienvenido, <strong style="color:var(--deep-blue)">${currentUser?.nombre || 'Super Admin'}</strong>. Administra empresas y usuarios del sistema.</div>
     </div>`;
 
   const alertasEl = document.getElementById('dash-alerts');
@@ -1011,20 +1015,14 @@ function renderDashboard() {
   const bordes  = { crit:'var(--red)', warn:'var(--yellow)', ok:'var(--green)' };
 
   document.getElementById('dash-mensaje-principal').innerHTML = top
-    ? `<div style="background:${colores[top.nivel]};border:1px solid ${bordes[top.nivel]};border-radius:var(--r2);padding:16px 20px;display:flex;gap:14px;align-items:center">
-        <span style="font-size:1.6rem;flex-shrink:0">${top.icono}</span>
-        <div style="flex:1">
-          <div style="font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:3px">Estado del Sistema</div>
-          <div style="font-size:.84rem;color:var(--text2);line-height:1.5">${top.texto}</div>
-        </div>
-        ${msgs.length>1 ? `<div style="font-size:.72rem;color:var(--text3);flex-shrink:0;text-align:center">${msgs.length-1} mensaje${msgs.length>2?'s':''}<br>adicional${msgs.length>2?'es':''}</div>` : ''}
+    ? `<div style="background:${colores[top.nivel]};border:1px solid ${bordes[top.nivel]};border-radius:12px;padding:8px 14px;display:flex;gap:8px;align-items:center">
+        <span style="font-size:1.1rem;flex-shrink:0">${top.icono}</span>
+        <div style="flex:1;font-size:.78rem;color:var(--text-gray);line-height:1.3">${top.texto}</div>
+        ${msgs.length>1 ? `<div style="font-size:.68rem;color:var(--text-gray);flex-shrink:0">+${msgs.length-1}</div>` : ''}
       </div>`
-    : `<div style="background:rgba(34,197,94,.06);border:1px solid var(--green);border-radius:var(--r2);padding:16px 20px;display:flex;gap:14px;align-items:center">
-        <span style="font-size:1.6rem">🟢</span>
-        <div>
-          <div style="font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:3px">Estado del Sistema</div>
-          <div style="font-size:.84rem;color:var(--text2)">Registra equipos para ver el diagnóstico automático del sistema.</div>
-        </div>
+    : `<div style="background:#E0F2F1;border:1px solid #B2DFDB;border-radius:12px;padding:8px 14px;display:flex;gap:8px;align-items:center">
+        <span style="font-size:1.1rem">🟢</span>
+        <div style="font-size:.78rem;color:var(--text-gray)">Registra equipos para ver el diagnóstico automático del sistema.</div>
       </div>`;
 
   // ── Alertas (en el panel expandible) ─────────────────────
